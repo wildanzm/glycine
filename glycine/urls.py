@@ -16,9 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from glycine import views
+from django.views.generic.base import RedirectView
+from core import views as core_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.index, name='index'),
+    path('dashboard', core_views.dashboard, name='dashboard'),
+    path('', RedirectView.as_view(pattern_name='dashboard', permanent=True)),
 ]

@@ -1,0 +1,118 @@
+{% extends "base.html" %} {% block title %}Glycine | Dashboard{% endblock %} {% block content %} {% with item=devices_data.0 %}
+<div class="space-y-6">
+	<div class="bg-white p-6 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4">
+		<div>
+			<h2 class="text-3xl font-bold text-gray-800">{{ item.device.name }}</h2>
+		</div>
+		<div class="flex items-center gap-6">
+			<div class="text-right">
+				<span class="text-sm font-medium text-gray-500">Status</span>
+				<p class="text-lg font-bold flex items-center {% if item.device.status == 'online' %} text-green-600 {% elif item.device.status == 'offline' %} text-red-600 {% else %} text-yellow-600 {% endif %}">
+					<span class="material-icons text-base mr-1"> {% if item.device.status == 'online' %} signal_cellular_alt {% else %} signal_cellular_off {% endif %} </span>
+					{{ item.device.status|title }}
+				</p>
+			</div>
+			<div class="text-right">
+				<span class="text-sm font-medium text-gray-500">Baterai</span>
+				<p class="text-lg font-bold text-gray-700 flex items-center">
+					<span class="material-icons text-base mr-1">battery_std</span>
+					{{ item.device.battery_level }}%
+				</p>
+			</div>
+		</div>
+	</div>
+
+	{% if item.readings %}
+	<div class="bg-white p-6 rounded-2xl shadow-md">
+		<h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+			<span class="material-icons mr-2 text-blue-500">filter_drama</span>
+			Kondisi Cuaca & Atmosfer
+		</h3>
+		<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+			<div class="bg-gray-50 p-4 rounded-xl text-center">
+				<span class="material-icons text-3xl text-red-500">thermostat</span>
+				<p class="mt-2 text-2xl font-bold text-gray-800">{{ item.readings.air_temperature }}°C</p>
+				<p class="text-sm text-gray-500">Suhu Udara</p>
+			</div>
+			<div class="bg-gray-50 p-4 rounded-xl text-center">
+				<span class="material-icons text-3xl text-blue-500">water_drop</span>
+				<p class="mt-2 text-2xl font-bold text-gray-800">{{ item.readings.air_humidity }}%</p>
+				<p class="text-sm text-gray-500">Kelembapan Udara</p>
+			</div>
+			<div class="bg-gray-50 p-4 rounded-xl text-center">
+				<span class="material-icons text-3xl text-gray-500">air</span>
+				<p class="mt-2 text-2xl font-bold text-gray-800">{{ item.readings.wind_speed }} <span class="text-base font-normal">km/h</span></p>
+				<p class="text-sm text-gray-500">Kecepatan Angin</p>
+			</div>
+			<div class="bg-gray-50 p-4 rounded-xl text-center">
+				<span class="material-icons text-3xl text-gray-500">explore</span>
+				<p class="mt-2 text-2xl font-bold text-gray-800">{{ item.readings.wind_direction }}</p>
+				<p class="text-sm text-gray-500">Arah Angin</p>
+			</div>
+			<div class="bg-gray-50 p-4 rounded-xl text-center">
+				<span class="material-icons text-3xl text-cyan-500">water</span>
+				<p class="mt-2 text-2xl font-bold text-gray-800">{{ item.readings.rainfall }} <span class="text-base font-normal">mm</span></p>
+				<p class="text-sm text-gray-500">Curah Hujan</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+		<div class="bg-white p-6 rounded-2xl shadow-md">
+			<h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+				<span class="material-icons mr-2 text-yellow-700">grass</span>
+				Kondisi Tanah
+			</h3>
+			<div class="grid grid-cols-2 gap-4">
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-yellow-700">water_damage</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800">{{ item.readings.soil_moisture }}%</p>
+					<p class="text-sm text-gray-500">Kelembapan</p>
+				</div>
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-purple-500">science</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800">{{ item.readings.soil_ph }}</p>
+					<p class="text-sm text-gray-500">pH Tanah</p>
+				</div>
+			</div>
+		</div>
+		<div class="bg-white p-6 rounded-2xl shadow-md lg:col-span-2">
+			<h3 class="text-xl font-semibold text-gray-700 mb-4"><span class="material-icons mr-2 text-green-600">eco</span>Kondisi Nutrisi Tanah (NPK)</h3>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-green-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="text-4xl font-bold text-green-700">N</span>
+						<span class="text-xs font-semibold">Nitrogen</span>
+					</div>
+					<p class="mt-3 text-2xl font-bold text-gray-800">{{ item.readings.nitrogen }}</p>
+					<p class="text-sm text-gray-500">mg/kg</p>
+				</div>
+
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="text-4xl font-bold text-orange-700">P</span>
+						<span class="text-xs font-semibold">Phosphorus</span>
+					</div>
+					<p class="mt-3 text-2xl font-bold text-gray-800">{{ item.readings.phosphorus }}</p>
+					<p class="text-sm text-gray-500">mg/kg</p>
+				</div>
+
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="text-4xl font-bold text-blue-700">K</span>
+						<span class="text-xs font-semibold">Kalium</span>
+					</div>
+					<p class="mt-3 text-2xl font-bold text-gray-800">{{ item.readings.potassium }}</p>
+					<p class="text-sm text-gray-500">mg/kg</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% else %}
+	<div class="bg-white p-8 rounded-lg shadow-md text-center">
+		<h3 class="text-xl font-semibold text-gray-700">Perangkat Offline</h3>
+		<p class="mt-2 text-gray-500">Saat ini perangkat sedang offline atau belum mengirimkan data.</p>
+	</div>
+	{% endif %}
+</div>
+{% endwith %} {% endblock %}
