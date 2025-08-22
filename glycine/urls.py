@@ -23,4 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard', core_views.dashboard, name='dashboard'),
     path('', RedirectView.as_view(pattern_name='dashboard', permanent=True)),
+    path('pompa-air', core_views.water_pump, name='water-pump'),
+    path('devices', core_views.device, name='device'),
 ]

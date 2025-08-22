@@ -1,0 +1,556 @@
+{% extends "base.html" %} {% block title %}Glycine | Perangkat{% endblock %} {% block extra_css %}
+<style>
+	.action-menu {
+		transform: translateY(0);
+		transition: all 0.15s ease-in-out;
+		min-width: 11rem;
+		max-height: 300px;
+		overflow-y: auto;
+	}
+
+	.action-menu.top-8 {
+		top: 2rem;
+		bottom: auto;
+	}
+
+	.action-menu.bottom-8 {
+		bottom: 2rem;
+		top: auto;
+	}
+
+	.relative {
+		overflow: visible !important;
+	}
+
+	@media (max-width: 640px) {
+		.action-menu {
+			min-width: 10rem;
+		}
+	}
+</style>
+{% endblock %} {% block content %}
+<div class="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl shadow-md">
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+		<div>
+			<h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Perangkat</h2>
+		</div>
+		<div>
+			{% if not devices %}
+			<button
+				type="button"
+				data-modal-target="add-device-modal"
+				data-modal-toggle="add-device-modal"
+				class="inline-flex items-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5 sm:px-5">
+				<span class="material-icons mr-2 text-base">add</span>
+				<span class="hidden sm:inline">Tambah Perangkat</span>
+				<span class="sm:hidden">Tambah</span>
+			</button>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if messages %} {% for message in messages %}
+	<div class="p-3 sm:p-4 mb-4 text-sm rounded-lg {% if message.tags == 'success' %} bg-green-100 text-green-800 {% elif message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}" role="alert">
+		<span class="font-medium">{{ message|capfirst }}</span>
+	</div>
+	{% endfor %} {% endif %}
+
+	<!-- Mobile Card View -->
+	<div class="block sm:hidden space-y-4 overflow-visible">
+		{% for device in devices %}
+		<div class="bg-white border border-gray-200 rounded-lg p-4 space-y-3 overflow-visible">
+			<div class="flex items-center justify-between">
+				<h3 class="font-semibold text-gray-900">{{ device.name }}</h3>
+				<div class="relative overflow-visible">
+					<button
+						type="button"
+						class="action-menu-btn inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-50"
+						data-device-id="{{ device.id }}"
+						data-device-name="{{ device.name }}"
+						data-device-mac="{{ device.device_uuid }}"
+						aria-expanded="false">
+						<span class="material-icons">more_vert</span>
+					</button>
+					<div class="action-menu hidden absolute right-0 top-8 z-50 bg-white divide-y divide-gray-100 rounded-lg shadow-lg border w-44">
+						<ul class="py-2 text-sm text-gray-700">
+							<li>
+								<button
+									type="button"
+									class="edit-btn-mobile w-full text-left block px-4 py-2 hover:bg-gray-100"
+									data-modal-target="edit-device-modal"
+									data-modal-toggle="edit-device-modal"
+									data-device-id="{{ device.id }}"
+									data-device-name="{{ device.name }}"
+									data-device-mac="{{ device.device_uuid }}">
+									<span class="material-icons text-sm mr-2 align-middle">edit</span>
+									Edit
+								</button>
+							</li>
+							<li>
+								<button
+									type="button"
+									class="delete-btn-mobile w-full text-left block px-4 py-2 hover:bg-gray-100 text-red-600"
+									data-modal-target="delete-device-modal"
+									data-modal-toggle="delete-device-modal"
+									data-device-id="{{ device.id }}"
+									data-device-name="{{ device.name }}">
+									<span class="material-icons text-sm mr-2 align-middle">delete</span>
+									Hapus
+								</button>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="space-y-2 text-sm">
+				<div class="flex justify-between">
+					<span class="text-gray-600">MAC Address:</span>
+					<span class="font-mono text-xs text-gray-900">{{ device.device_uuid }}</span>
+				</div>
+				<div class="flex justify-between items-center">
+					<span class="text-gray-600">Status:</span>
+					<span
+						class="px-2 py-1 text-xs font-medium rounded-full {% if device.status == 'online' %} bg-green-100 text-green-800 {% elif device.status == 'offline' %} bg-red-100 text-red-800 {% else %} bg-yellow-100 text-yellow-800 {% endif %}">
+						{{ device.status|title }}
+					</span>
+				</div>
+				<div class="flex justify-between items-center">
+					<span class="text-gray-600">Baterai:</span>
+					<div class="flex items-center gap-2">
+						<div class="w-16 bg-gray-200 rounded-full h-2">
+							<div class="bg-green-600 h-2 rounded-full" style="width: {{ device.battery_level|default:0 }}%"></div>
+						</div>
+						<span class="text-xs font-medium min-w-[2rem] text-left">{{ device.battery_level|default:"-" }}%</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% empty %}
+		<div class="text-center py-8">
+			<div class="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+				<span class="material-icons text-2xl text-gray-400">developer_board</span>
+			</div>
+			<h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada perangkat</h3>
+			<p class="text-gray-500 text-sm mb-4">Tambahkan perangkat IoT pertama Anda</p>
+			<button
+				type="button"
+				data-modal-target="add-device-modal"
+				data-modal-toggle="add-device-modal"
+				class="inline-flex items-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5">
+				<span class="material-icons mr-2 text-base">add</span>
+				Tambah Perangkat
+			</button>
+		</div>
+		{% endfor %}
+	</div>
+
+	<!-- Desktop Table View -->
+	<div class="hidden sm:block overflow-visible">
+		<div class="relative overflow-x-auto rounded-lg border">
+			<table class="w-full text-sm text-left text-gray-500">
+				<thead class="text-xs text-gray-700 uppercase bg-gray-50">
+					<tr>
+						<th scope="col" class="px-4 lg:px-6 py-3">Nama Perangkat</th>
+						<th scope="col" class="px-4 lg:px-6 py-3">MAC Address</th>
+						<th scope="col" class="px-4 lg:px-6 py-3">Status</th>
+						<th scope="col" class="px-4 lg:px-6 py-3">Baterai</th>
+						<th scope="col" class="px-4 lg:px-6 py-3"><span class="sr-only">Aksi</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for device in devices %}
+					<tr class="bg-white border-b hover:bg-gray-50">
+						<th scope="row" class="px-4 lg:px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{{ device.name }}</th>
+						<td class="px-4 lg:px-6 py-4 font-mono text-xs">{{ device.device_uuid }}</td>
+						<td class="px-4 lg:px-6 py-4">
+							<span
+								class="px-2 py-1 text-xs font-medium rounded-full {% if device.status == 'online' %} bg-green-100 text-green-800 {% elif device.status == 'offline' %} bg-red-100 text-red-800 {% else %} bg-yellow-100 text-yellow-800 {% endif %}">
+								{{ device.status|title }}
+							</span>
+						</td>
+						<td class="px-4 lg:px-6 py-4">
+							<div class="flex items-center gap-2">
+								<div class="w-full bg-gray-200 rounded-full h-2.5">
+									<div class="bg-green-600 h-2.5 rounded-full" style="width: {{ device.battery_level|default:0 }}%"></div>
+								</div>
+								<span class="text-xs font-medium min-w-[2.5rem] text-left">{{ device.battery_level|default:"-" }}%</span>
+							</div>
+						</td>
+						<td class="px-4 lg:px-6 py-4 text-right">
+							<div class="relative inline-block text-left">
+								<button
+									type="button"
+									class="action-menu-btn inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-50 border"
+									data-device-id="{{ device.id }}"
+									data-device-name="{{ device.name }}"
+									data-device-mac="{{ device.device_uuid }}"
+									aria-expanded="false">
+									<span class="material-icons">more_vert</span>
+								</button>
+								<div class="action-menu hidden absolute right-0 top-8 z-50 bg-white divide-y divide-gray-100 rounded-lg shadow-lg border w-44">
+									<ul class="py-2 text-sm text-gray-700">
+										<li>
+											<button
+												type="button"
+												class="edit-btn w-full text-left block px-4 py-2 hover:bg-gray-100"
+												data-modal-target="edit-device-modal"
+												data-modal-toggle="edit-device-modal"
+												data-device-id="{{ device.id }}"
+												data-device-name="{{ device.name }}"
+												data-device-mac="{{ device.device_uuid }}">
+												<span class="material-icons text-sm mr-2 align-middle">edit</span>
+												Edit Perangkat
+											</button>
+										</li>
+										<li>
+											<button
+												type="button"
+												class="delete-btn w-full text-left block px-4 py-2 hover:bg-gray-100 text-red-600"
+												data-modal-target="delete-device-modal"
+												data-modal-toggle="delete-device-modal"
+												data-device-id="{{ device.id }}"
+												data-device-name="{{ device.name }}">
+												<span class="material-icons text-sm mr-2 align-middle">delete</span>
+												Hapus Perangkat
+											</button>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="5" class="px-4 lg:px-6 py-12 text-center">
+							<div class="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+								<span class="material-icons text-2xl text-gray-400">developer_board</span>
+							</div>
+							<h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada perangkat</h3>
+							<p class="text-gray-500 text-sm mb-4">Tambahkan perangkat IoT pertama Anda</p>
+							<button
+								type="button"
+								data-modal-target="add-device-modal"
+								data-modal-toggle="add-device-modal"
+								class="inline-flex items-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2.5">
+								<span class="material-icons mr-2 text-base">add</span>
+								Tambah Perangkat
+							</button>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<div id="add-device-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+	<div class="relative p-4 w-full max-w-md max-h-full">
+		<div class="relative bg-white rounded-lg shadow">
+			<div class="flex items-center justify-between p-4 border-b rounded-t">
+				<h3 class="text-xl font-semibold text-gray-900">Tambah Perangkat Baru</h3>
+				<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="add-device-modal">
+					<span class="material-icons">close</span>
+				</button>
+			</div>
+			<form method="POST" class="p-4">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="add" />
+				<div class="grid gap-4 mb-4 grid-cols-1">
+					<div>
+						<label for="name" class="block mb-2 text-sm font-medium text-gray-900">Nama Perangkat</label>
+						<input
+							type="text"
+							name="name"
+							id="name"
+							class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5"
+							placeholder="Contoh: Raspberry"
+							required />
+					</div>
+					<div>
+						<label for="mac_address" class="block mb-2 text-sm font-medium text-gray-900">MAC Address</label>
+						<input
+							type="text"
+							name="mac_address"
+							id="mac_address"
+							class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5"
+							placeholder="Contoh: AA:BB:CC:DD:EE:FF"
+							pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+							title="Format MAC Address: AA:BB:CC:DD:EE:FF atau AA-BB-CC-DD-EE-FF"
+							required />
+						<p class="mt-1 text-xs text-gray-500">Format: AA:BB:CC:DD:EE:FF</p>
+					</div>
+				</div>
+				<button type="submit" class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Simpan Perangkat</button>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div id="edit-device-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+	<div class="relative p-4 w-full max-w-md max-h-full">
+		<div class="relative bg-white rounded-lg shadow">
+			<div class="flex items-center justify-between p-4 border-b rounded-t">
+				<h3 class="text-xl font-semibold text-gray-900">Edit Perangkat</h3>
+				<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="edit-device-modal">
+					<span class="material-icons">close</span>
+				</button>
+			</div>
+			<form method="POST" class="p-4" onsubmit="return validateEditForm()">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="edit" />
+				<input type="hidden" name="device_id" id="edit-device-id" />
+				<div class="grid gap-4 mb-4 grid-cols-1">
+					<div>
+						<label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900">Nama Perangkat</label>
+						<input type="text" name="name" id="edit-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5" required />
+					</div>
+					<div>
+						<label for="edit-mac" class="block mb-2 text-sm font-medium text-gray-900">MAC Address</label>
+						<input
+							type="text"
+							name="mac_address"
+							id="edit-mac"
+							class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5"
+							pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+							title="Format MAC Address: AA:BB:CC:DD:EE:FF atau AA-BB-CC-DD-EE-FF"
+							required />
+						<p class="mt-1 text-xs text-gray-500">Format: AA:BB:CC:DD:EE:FF</p>
+					</div>
+				</div>
+				<button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Perbarui Perangkat</button>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div id="delete-device-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+	<div class="relative p-4 w-full max-w-md max-h-full">
+		<div class="relative bg-white rounded-lg shadow">
+			<button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="delete-device-modal">
+				<span class="material-icons">close</span>
+			</button>
+			<form method="POST" class="p-4 text-center" onsubmit="return validateDeleteForm()">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="delete" />
+				<input type="hidden" name="device_id" id="delete-device-id" />
+				<div class="w-12 h-12 mx-auto mb-4 text-red-600">
+					<span class="material-icons text-5xl">warning</span>
+				</div>
+				<h3 class="mb-5 text-lg font-normal text-gray-500">Apakah Anda yakin ingin menghapus perangkat <strong id="delete-device-name"></strong>?</h3>
+				<div class="flex justify-center gap-3">
+					<button type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+						<span class="material-icons mr-2 text-sm">delete</span>
+						Ya, Hapus
+					</button>
+					<button
+						data-modal-hide="delete-device-modal"
+						type="button"
+						class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+						Batal
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+{% endblock %} {% block extra_js %}
+<script>
+	// Validation functions
+	function validateEditForm() {
+		const deviceId = document.getElementById("edit-device-id")?.value;
+		const deviceName = document.getElementById("edit-name")?.value;
+		const deviceMac = document.getElementById("edit-mac")?.value;
+
+		if (!deviceId) {
+			alert("ID perangkat tidak ditemukan. Silakan tutup modal dan coba lagi.");
+			return false;
+		}
+
+		if (!deviceName || deviceName.trim() === "") {
+			alert("Nama perangkat tidak boleh kosong.");
+			return false;
+		}
+
+		if (!deviceMac || deviceMac.trim() === "") {
+			alert("MAC Address tidak boleh kosong.");
+			return false;
+		}
+
+		// Validate MAC Address format
+		const macPattern = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+		if (!macPattern.test(deviceMac)) {
+			alert("Format MAC Address tidak valid. Gunakan format: AA:BB:CC:DD:EE:FF atau AA-BB-CC-DD-EE-FF");
+			return false;
+		}
+
+		return true;
+	}
+
+	function validateDeleteForm() {
+		const deviceId = document.getElementById("delete-device-id")?.value;
+
+		if (!deviceId) {
+			alert("ID perangkat tidak ditemukan. Silakan tutup modal dan coba lagi.");
+			return false;
+		}
+
+		return true;
+	}
+
+	// MAC Address formatter
+	function formatMacAddress(input) {
+		let value = input.value.replace(/[^0-9A-Fa-f]/g, "");
+		let formattedValue = "";
+
+		for (let i = 0; i < value.length && i < 12; i++) {
+			if (i > 0 && i % 2 === 0) {
+				formattedValue += ":";
+			}
+			formattedValue += value[i];
+		}
+
+		input.value = formattedValue.toUpperCase();
+	}
+
+	document.addEventListener("DOMContentLoaded", () => {
+		// Auto-format MAC Address inputs
+		const macInputs = document.querySelectorAll("#mac_address, #edit-mac");
+		macInputs.forEach((input) => {
+			input.addEventListener("input", () => formatMacAddress(input));
+			input.addEventListener("paste", (e) => {
+				setTimeout(() => formatMacAddress(input), 10);
+			});
+		});
+
+		// Action menu toggle functionality
+		const actionMenuBtns = document.querySelectorAll(".action-menu-btn");
+
+		actionMenuBtns.forEach((btn) => {
+			btn.addEventListener("click", (e) => {
+				e.stopPropagation();
+
+				// Close all other menus
+				document.querySelectorAll(".action-menu").forEach((menu) => {
+					if (menu !== btn.nextElementSibling) {
+						menu.classList.add("hidden");
+					}
+				});
+
+				// Toggle current menu
+				const menu = btn.nextElementSibling;
+				menu.classList.toggle("hidden");
+
+				// Position menu to prevent overflow
+				if (!menu.classList.contains("hidden")) {
+					positionDropdown(btn, menu);
+				}
+			});
+		});
+
+		// Function to position dropdown and prevent overflow
+		function positionDropdown(button, menu) {
+			const rect = button.getBoundingClientRect();
+			const menuRect = menu.getBoundingClientRect();
+			const viewportWidth = window.innerWidth;
+			const viewportHeight = window.innerHeight;
+
+			// Reset classes
+			menu.classList.remove("top-8", "bottom-8", "right-0", "left-0");
+
+			// Check if there's enough space below
+			if (rect.bottom + menuRect.height + 10 > viewportHeight) {
+				// Position above if not enough space below
+				menu.classList.add("bottom-8");
+			} else {
+				// Position below
+				menu.classList.add("top-8");
+			}
+
+			// Check if there's enough space on the right
+			if (rect.right - menuRect.width < 0) {
+				// Position to the left if not enough space on right
+				menu.classList.add("left-0");
+			} else {
+				// Position to the right
+				menu.classList.add("right-0");
+			}
+		}
+
+		// Close menus when clicking outside
+		document.addEventListener("click", () => {
+			document.querySelectorAll(".action-menu").forEach((menu) => {
+				menu.classList.add("hidden");
+			});
+		});
+
+		// Close menus on window resize
+		window.addEventListener("resize", () => {
+			document.querySelectorAll(".action-menu").forEach((menu) => {
+				menu.classList.add("hidden");
+			});
+		});
+
+		// Prevent menu close when clicking inside menu
+		document.querySelectorAll(".action-menu").forEach((menu) => {
+			menu.addEventListener("click", (e) => {
+				e.stopPropagation();
+			});
+		});
+
+		// Edit button functionality (both desktop and mobile)
+		const editButtons = document.querySelectorAll(".edit-btn, .edit-btn-mobile");
+		const editModalIdInput = document.getElementById("edit-device-id");
+		const editModalNameInput = document.getElementById("edit-name");
+		const editModalMacInput = document.getElementById("edit-mac");
+
+		editButtons.forEach((button) => {
+			button.addEventListener("click", (e) => {
+				e.preventDefault();
+
+				const deviceId = button.dataset.deviceId;
+				const deviceName = button.dataset.deviceName;
+				const deviceMac = button.dataset.deviceMac;
+
+				if (editModalIdInput && editModalNameInput && editModalMacInput) {
+					editModalIdInput.value = deviceId || "";
+					editModalNameInput.value = deviceName || "";
+					editModalMacInput.value = deviceMac || "";
+				}
+
+				// Close action menu
+				const menu = button.closest(".action-menu");
+				if (menu) {
+					menu.classList.add("hidden");
+				}
+			});
+		});
+
+		// Delete button functionality (both desktop and mobile)
+		const deleteButtons = document.querySelectorAll(".delete-btn, .delete-btn-mobile");
+		const deleteModalIdInput = document.getElementById("delete-device-id");
+		const deleteModalNameSpan = document.getElementById("delete-device-name");
+
+		deleteButtons.forEach((button) => {
+			button.addEventListener("click", (e) => {
+				e.preventDefault();
+
+				const deviceId = button.dataset.deviceId;
+				const deviceName = button.dataset.deviceName;
+
+				if (deleteModalIdInput && deleteModalNameSpan) {
+					deleteModalIdInput.value = deviceId || "";
+					deleteModalNameSpan.textContent = deviceName ? `"${deviceName}"` : "Tidak diketahui";
+				}
+
+				// Close action menu
+				const menu = button.closest(".action-menu");
+				if (menu) {
+					menu.classList.add("hidden");
+				}
+			});
+		});
+	});
+</script>
+{% endblock %}
