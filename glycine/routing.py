@@ -1,8 +1,11 @@
 # glycine/routing.py
 from django.urls import re_path
-
-# import consumers here
+from core import consumers
 
 websocket_urlpatterns = [
-    # re_path(r'ws/some_path/', consumers.SomeConsumer.as_asgi()),
+    # WebSocket untuk perangkat IoT
+    re_path(r'ws/device/(?P<device_uuid>[\w:-]+)/$', consumers.DeviceConsumer.as_asgi()),
+    
+    # WebSocket untuk dashboard browser
+    re_path(r'ws/dashboard/$', consumers.DashboardConsumer.as_asgi()),
 ]

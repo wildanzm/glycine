@@ -2,34 +2,84 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Device, SensorReading
 
-def dashboard(request):
-    dummy_data = [
-        {
-            'device': {'name': 'Raspberry Pi 4', 'status': 'online', 'battery_level': 92},
 
-            'readings': {
-                'air_temperature': 29.5,
-                'air_humidity': 76,
-                'soil_moisture': 68,
-                'soil_ph': 6.8,
-                'wind_speed': 12.5,
-                'wind_direction': 'Tenggara',
-                'nitrogen': 120,
-                'phosphorus': 85,
-                'potassium': 210,
-                'rainfall': 0.5,
-            }
+def dashboard(request):
+    # Ambil data real dari database
+    devices_data = []
+    
+    # Ambil semua device yang terdaftar
+    devices = Device.objects.all()
+    
+    for device in devices:
+        # Ambil reading terbaru untuk setiap device
+        latest_reading = SensorReading.objects.filter(device=device).order_by('-timestamp').first()
+        
+        device_data = {
+            'device': {
+                'uuid': device.device_uuid,
+                'name': device.name,
+                'status': device.status,
+                'battery_level': device.battery_level,
+                'created_at': device.created_at,
+            },
+            'readings': None
         }
-    ]
+        
+        if latest_reading:
+            device_data['readings'] = {
+                'id': latest_reading.id,
+                'timestamp': latest_reading.timestamp,
+                'air_temperature': latest_reading.air_temperature,
+                'air_humidity': latest_reading.air_humidity,
+                'soil_moisture': latest_reading.soil_moisture,
+                'soil_ph': latest_reading.soil_ph,
+                'wind_speed': latest_reading.wind_speed,
+                'wind_direction': latest_reading.wind_direction,
+                'nitrogen': latest_reading.nitrogen,
+                'phosphorus': latest_reading.phosphorus,
+                'potassium': latest_reading.potassium,
+                'rainfall': latest_reading.rainfall,
+            }
+        
+        devices_data.append(device_data)
+    
+    # Jika tidak ada device atau data, gunakan fallback
+    if not devices_data:
+        devices_data = [{
+            'device': {
+                'uuid': 'no-device',
+                'name': 'Belum Ada Perangkat',
+                'status': 'offline',
+                'battery_level': 0,
+                'created_at': None,
+            },
+            'readings': None
+        }]
 
     context = {
-        'devices_data': dummy_data,
+        'devices_data': devices_data,
         'active_page': 'dashboard',
+        'has_devices': len(devices) > 0,
+        'online_devices_count': devices.filter(status='online').count(),
+        'total_devices_count': devices.count(),
     }
     
     return render(request, 'dashboard.html', context)
 
 def water_pump(request):
+    if request.method == 'POST':
+        # Contoh: Toggle status pompa air
+        pump_id = request.POST.get('pump_id', 'pump_01')
+        action = request.POST.get('action', 'toggle')
+        
+        # Simulasi toggle pompa
+        is_active = action == 'on'
+        
+        # Kirim pesan konfirmasi
+        status_message = f"Pompa air {'dinyalakan' if is_active else 'dimatikan'}"
+        messages.success(request, status_message)
+        return redirect('water-pump')
+    
     context = {
         'active_page': 'water-pump',
     }
