@@ -1,625 +1,206 @@
-{% extends "base.html" %} {% load static %} {% block title %}Glycine | Dashboard{% endblock %} {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard-websocket.css' %}" />
-<style>
-	.device-card-container {
-		transition: all 0.3s ease;
-	}
-
-	.sensor-value {
-		transition: all 0.5s ease;
-	}
-
-	.sensor-value.updated {
-		color: #16a34a !important;
-		transform: scale(1.1);
-	}
-
-	.last-updated {
-		font-size: 0.75rem;
-		color: #6b7280;
-		margin-top: 0.5rem;
-	}
-
-	.connection-indicator {
-		position: fixed;
-		top: 80px;
-		right: 20px;
-		z-index: 1000;
-		padding: 8px 16px;
-		border-radius: 20px;
-		font-size: 0.875rem;
-		font-weight: 600;
-		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-	}
-
-	.connection-indicator.connected {
-		background-color: #dcfce7;
-		color: #166534;
-		border: 1px solid #bbf7d0;
-	}
-
-	.connection-indicator.disconnected {
-		background-color: #fef2f2;
-		color: #991b1b;
-		border: 1px solid #fecaca;
-	}
-
-	.connection-indicator.connecting {
-		background-color: #fef3c7;
-		color: #92400e;
-		border: 1px solid #fde68a;
-	}
-
-	.no-data-placeholder {
-		opacity: 0.5;
-		font-style: italic;
-	}
-</style>
-{% endblock %} {% block content %}
-<!-- Connection Status Indicator -->
-<div id="connection-status" class="connection-indicator disconnected">
-	<span class="material-icons text-sm mr-1">wifi_off</span>
-	Terputus
-</div>
-
-<!-- Notifications Container -->
-<div id="notifications" class="fixed top-20 right-4 z-50 max-w-sm space-y-2"></div>
-
-<!-- Dashboard Summary -->
-<div class="bg-white p-6 rounded-2xl shadow-md mb-6">
-	<div class="flex flex-wrap items-center justify-between gap-4">
+{% extends "base.html" %} {% block title %}Glycine | Dashboard{% endblock %} {% block content %}
+<div id="dashboard-container" class="space-y-6">
+	{% if device %}
+	<div class="bg-white p-6 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4">
 		<div>
-			<h2 class="text-3xl font-bold text-gray-800">Dashboard IoT Sensor</h2>
-			<p class="text-gray-600 mt-1">Monitoring real-time perangkat pertanian</p>
+			<h2 id="device-name" class="text-3xl font-bold text-gray-800">{{ device.name }}</h2>
+			<p class="text-gray-500 mt-1">Mac Address: <span class="font-mono text-sm">{{ device.device_uuid }}</span></p>
 		</div>
 		<div class="flex items-center gap-6">
-			<div class="text-center">
-				<span class="text-sm font-medium text-gray-500">Total Perangkat</span>
-				<p class="text-2xl font-bold text-gray-700" id="total-count">0</p>
-			</div>
-			<div class="text-center">
-				<span class="text-sm font-medium text-gray-500">Online</span>
-				<p class="text-2xl font-bold text-green-600" id="online-count">0</p>
-			</div>
-			<div class="text-center">
-				<span class="text-sm font-medium text-gray-500">Offline</span>
-				<p class="text-2xl font-bold text-red-600" id="offline-count">0</p>
+			<div class="text-right">
+				<span class="text-sm font-medium text-gray-500">Status</span>
+				<p id="device-status-text" class="text-lg font-bold flex items-center {% if device.status == 'online' %} text-green-600 {% else %} text-red-600 {% endif %}">
+					<span id="device-status-icon" class="material-icons text-base mr-1"> {% if device.status == 'online' %} signal_cellular_alt {% else %} signal_cellular_off {% endif %} </span>
+					<span id="device-status-label">{{ device.status|title }}</span>
+				</p>
 			</div>
 		</div>
 	</div>
-</div>
 
-<!-- Devices Container -->
-<div id="devices-container">
-	<div class="bg-white p-8 rounded-2xl shadow-md text-center">
-		<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-		<p class="text-gray-500">Memuat data perangkat...</p>
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<div class="bg-white p-6 rounded-2xl shadow-md">
+			<h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center"><span class="material-icons mr-2 text-blue-500">filter_drama</span>Kondisi Cuaca</h3>
+			<div class="grid grid-cols-2 gap-4">
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-red-500">thermostat</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_temperature" data-decimal="1" data-unit="°C">{{ reading.air_temperature|floatformat:1|default:"--" }}°C</p>
+					<p class="text-sm text-gray-500">Suhu Udara</p>
+				</div>
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-blue-500">water_drop</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_humidity" data-decimal="0" data-unit="%">{{ reading.air_humidity|floatformat:0|default:"--" }}%</p>
+					<p class="text-sm text-gray-500">Kelembapan Udara</p>
+				</div>
+			</div>
+		</div>
+		<div class="bg-white p-6 rounded-2xl shadow-md">
+			<h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center"><span class="material-icons mr-2 text-yellow-700">grass</span>Kondisi Tanah</h3>
+			<div class="grid grid-cols-2 gap-4">
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-yellow-700">water_damage</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_moisture" data-decimal="0" data-unit="%">{{ reading.soil_moisture|floatformat:0|default:"--" }}%</p>
+					<p class="text-sm text-gray-500">Kelembapan Tanah</p>
+				</div>
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-purple-500">science</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_ph" data-decimal="1">{{ reading.soil_ph|floatformat:1|default:"--" }}</p>
+					<p class="text-sm text-gray-500">pH Tanah</p>
+				</div>
+			</div>
+		</div>
 	</div>
-</div>
 
-<!-- Notifications Container -->
-<div id="notifications" class="fixed top-20 right-6 z-50 space-y-2 max-w-sm">
-	<!-- Notifications akan ditambahkan via JavaScript -->
-</div>
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+		<div class="bg-white p-6 rounded-2xl shadow-md">
+			<h3 class="text-lg font-semibold text-gray-700 mb-4">Kondisi Angin</h3>
+			<div class="grid grid-cols-2 gap-4">
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-gray-500">air</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_speed" data-decimal="1" data-unit=" km/h">{{ reading.wind_speed|floatformat:1|default:"--" }} km/h</p>
+					<p class="text-sm text-gray-500">Kecepatan</p>
+				</div>
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-gray-500">explore</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_direction" data-unit="">{{ reading.wind_direction|default:"--" }}</p>
+					<p class="text-sm text-gray-500">Arah Angin</p>
+				</div>
+			</div>
+		</div>
+		<div class="bg-white p-6 rounded-2xl shadow-md lg:col-span-2">
+			<h3 class="text-lg font-semibold text-gray-700 mb-4">Nutrisi Tanah</h3>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-green-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">7</span>
+						<span class="text-4xl font-bold text-green-700">N</span>
+						<span class="text-xs font-semibold">Nitrogen</span>
+					</div>
+					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="nitrogen" data-decimal="0" data-unit=" mg/kg">{{ reading.nitrogen|floatformat:0|default:"--" }} mg/kg</p>
+				</div>
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">15</span>
+						<span class="text-4xl font-bold text-orange-700">P</span>
+						<span class="text-xs font-semibold">Phosphorus</span>
+					</div>
+					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="phosphorus" data-decimal="0" data-unit=" mg/kg">{{ reading.phosphorus|floatformat:0|default:"--" }} mg/kg</p>
+				</div>
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">19</span>
+						<span class="text-4xl font-bold text-blue-700">K</span>
+						<span class="text-xs font-semibold">Potassium</span>
+					</div>
+					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="potassium" data-decimal="0" data-unit=" mg/kg">{{ reading.potassium|floatformat:0|default:"--" }} mg/kg</p>
+				</div>
+			</div>
+		</div>
+	</div>
 
+	{% else %}
+	<div class="bg-white p-8 rounded-2xl shadow-md text-center">
+		<span class="material-icons text-6xl text-gray-300 mb-4">developer_board_off</span>
+		<h3 class="text-xl font-semibold text-gray-600 mb-2">Tidak Ada Perangkat Terdaftar</h3>
+		<p class="text-gray-500">Silakan tambahkan perangkat di halaman 'Device' untuk memulai monitoring.</p>
+	</div>
+	{% endif %}
+</div>
 {% endblock %} {% block extra_js %}
-<script src="{% static 'js/dashboard-websocket.js' %}"></script>
-
 <script>
-	// Override fungsi dari dashboard-websocket.js untuk dashboard yang sudah ada
 	document.addEventListener("DOMContentLoaded", function () {
-	constructor() {
-		this.socket = null;
-		this.reconnectAttempts = 0;
-		this.maxReconnectAttempts = 5;
-		this.reconnectDelay = 1000;
-		this.isConnected = false;
-
-		this.statusIndicator = document.getElementById("connection-status");
-		this.devicesContainer = document.getElementById("devices-container");
-		this.onlineCountElement = document.getElementById("online-count");
-		this.offlineCountElement = document.getElementById("offline-count");
-		this.totalCountElement = document.getElementById("total-count");
-
-		this.connect();
-	}		connect() {
-			try {
-				const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-				const wsUrl = `${protocol}//${window.location.host}/ws/dashboard/`;
-
-				this.socket = new WebSocket(wsUrl);
-				this.setupSocketEvents();
-
-				this.updateStatus("connecting", "Menghubungkan...", "wifi_tethering");
-			} catch (error) {
-				console.error("Error creating WebSocket:", error);
-				this.handleConnectionError();
-			}
-		}
-
-		setupSocketEvents() {
-		this.socket.onopen = () => {
-			console.log("Dashboard WebSocket connected");
-			this.isConnected = true;
-			this.reconnectAttempts = 0;
-			this.updateStatus("connected", "Terhubung", "wifi");
-			this.showNotification("WebSocket terhubung", "success");
-
-			// Request initial data setelah terhubung
-			this.requestInitialData();
-		};			this.socket.onmessage = (event) => {
-				try {
-					const data = JSON.parse(event.data);
-					this.handleMessage(data);
-				} catch (error) {
-					console.error("Error parsing message:", error);
-				}
-			};
-
-			this.socket.onclose = (event) => {
-				console.log("WebSocket connection closed:", event.code);
-				this.isConnected = false;
-				this.updateStatus("disconnected", "Terputus", "wifi_off");
-
-				if (event.code !== 1000) {
-					this.attemptReconnect();
-				}
-			};
-
-			this.socket.onerror = (error) => {
-				console.error("WebSocket error:", error);
-				this.handleConnectionError();
-			};
-		}
-
-		handleMessage(data) {
-			console.log("Received message:", data);
-			console.log("Message type:", data.type);
-
-			switch (data.type) {
-				case "connection_established":
-					console.log("Connection established");
-					break;
-
-				case "sensor_update":
-					console.log("Processing sensor update for device:", data.device_uuid);
-					this.updateSensorData(data);
-					this.showNotification(`Data baru dari ${data.device_name}`, "info");
-					break;
-
-				case "online_devices":
-					this.updateDevicesStatus(data.devices);
-					break;
-
-				case "device_status_update":
-					this.updateDeviceStatus(data);
-					break;
-
-				case "devices_data":
-					this.updateDashboardData(data);
-					break;
-
-				default:
-					console.log("Unknown message type:", data.type);
-			}
-		}
-
-		requestInitialData() {
-			if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-				this.socket.send(JSON.stringify({
-					type: 'get_dashboard_data'
-				}));
-			}
-		}
-
-		updateDashboardData(data) {
-			console.log("Updating dashboard with data:", data);
-
-			// Update counters
-			if (this.totalCountElement) {
-				this.totalCountElement.textContent = data.total_devices_count || 0;
-			}
-
-			if (this.onlineCountElement) {
-				this.onlineCountElement.textContent = data.online_devices_count || 0;
-			}
-
-			if (this.offlineCountElement) {
-				this.offlineCountElement.textContent = data.offline_devices_count || 0;
-			}
-
-			// Clear existing devices and load fresh data
-			if (this.devicesContainer && data.devices_data) {
-				this.devicesContainer.innerHTML = '';
-
-				if (data.devices_data.length === 0) {
-					this.showNoDevicesMessage();
-				} else {
-					data.devices_data.forEach(deviceData => {
-						this.createDeviceCard(deviceData);
-					});
-				}
-			}
-		}
-
-		showNoDevicesMessage() {
-			this.devicesContainer.innerHTML = `
-				<div class="bg-white p-8 rounded-2xl shadow-md text-center">
-					<span class="material-icons text-6xl text-gray-300 mb-4">device_hub</span>
-					<h3 class="text-xl font-semibold text-gray-600 mb-2">Belum Ada Perangkat</h3>
-					<p class="text-gray-500">Tambahkan perangkat IoT untuk memulai monitoring</p>
-				</div>
-			`;
-		}
-
-		createDeviceCard(deviceData) {
-			const device = deviceData.device;
-			const readings = deviceData.readings;
-
-			const deviceCard = document.createElement('div');
-			deviceCard.className = 'device-card-container bg-white p-6 rounded-2xl shadow-md mb-6';
-			deviceCard.setAttribute('data-device-uuid', device.uuid);
-			deviceCard.setAttribute('data-device-name', device.name);
-
-			deviceCard.innerHTML = `
-				<!-- Device Header -->
-				<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-					<div>
-						<h3 class="text-xl font-bold text-gray-800">${device.name}</h3>
-						<p class="text-sm text-gray-500">UUID: ${device.uuid}</p>
-					</div>
-					<div class="flex items-center gap-6">
-						<div class="text-right">
-							<span class="text-sm font-medium text-gray-500">Status</span>
-							<p class="text-lg font-bold flex items-center device-status-indicator ${device.status === 'online' ? 'text-green-600' : device.status === 'offline' ? 'text-red-600' : 'text-yellow-600'}">
-								<span class="material-icons text-base mr-1 device-status-icon">
-									${device.status === 'online' ? 'signal_cellular_alt' : 'signal_cellular_off'}
-								</span>
-								<span class="device-status-text">${device.status.charAt(0).toUpperCase() + device.status.slice(1)}</span>
-							</p>
-						</div>
-						<div class="text-right">
-							<span class="text-sm font-medium text-gray-500">Baterai</span>
-							<p class="text-lg font-bold text-gray-700 flex items-center">
-								<span class="material-icons text-base mr-1">battery_std</span>
-								<span class="device-battery">${device.battery_level || '--'}</span>%
-							</p>
-						</div>
-					</div>
-				</div>
-
-				${readings ? this.createSensorDataHTML(readings) : this.createNoDataHTML()}
-			`;
-
-			this.devicesContainer.appendChild(deviceCard);
-		}
-
-		createSensorDataHTML(readings) {
-			return `
-				<!-- Weather & Atmosphere Conditions -->
-				<div class="mb-6">
-					<h4 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-						<span class="material-icons mr-2 text-blue-500">filter_drama</span>
-						Kondisi Cuaca & Atmosfer
-					</h4>
-					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-						<div class="bg-gray-50 p-4 rounded-xl text-center">
-							<span class="material-icons text-3xl text-red-500">thermostat</span>
-							<p class="mt-2 text-2xl font-bold text-gray-800 sensor-value" data-sensor="air_temperature">${readings.air_temperature || '--'}</p>
-							<p class="text-sm text-gray-500">Suhu Udara (°C)</p>
-						</div>
-						<div class="bg-gray-50 p-4 rounded-xl text-center">
-							<span class="material-icons text-3xl text-blue-500">water_drop</span>
-							<p class="mt-2 text-2xl font-bold text-gray-800 sensor-value" data-sensor="air_humidity">${readings.air_humidity || '--'}</p>
-							<p class="text-sm text-gray-500">Kelembapan Udara (%)</p>
-						</div>
-						<div class="bg-gray-50 p-4 rounded-xl text-center">
-							<span class="material-icons text-3xl text-gray-500">air</span>
-							<p class="mt-2 text-2xl font-bold text-gray-800 sensor-value" data-sensor="wind_speed">${readings.wind_speed || '--'}</p>
-							<p class="text-sm text-gray-500">Kec. Angin (km/h)</p>
-						</div>
-						<div class="bg-gray-50 p-4 rounded-xl text-center">
-							<span class="material-icons text-3xl text-gray-500">explore</span>
-							<p class="mt-2 text-2xl font-bold text-gray-800 sensor-value" data-sensor="wind_direction">${readings.wind_direction || '--'}</p>
-							<p class="text-sm text-gray-500">Arah Angin</p>
-						</div>
-						<div class="bg-gray-50 p-4 rounded-xl text-center">
-							<span class="material-icons text-3xl text-cyan-500">water</span>
-							<p class="mt-2 text-2xl font-bold text-gray-800 sensor-value" data-sensor="rainfall">${readings.rainfall || '--'}</p>
-							<p class="text-sm text-gray-500">Curah Hujan (mm)</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Soil Conditions & NPK -->
-				<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					<!-- Soil Conditions -->
-					<div class="bg-gray-50 p-6 rounded-xl">
-						<h4 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-							<span class="material-icons mr-2 text-yellow-700">grass</span>
-							Kondisi Tanah
-						</h4>
-						<div class="grid grid-cols-2 gap-4">
-							<div class="bg-white p-4 rounded-xl text-center">
-								<span class="material-icons text-3xl text-yellow-700">water_damage</span>
-								<p class="mt-2 text-2xl font-bold text-gray-800 sensor-value" data-sensor="soil_moisture">${readings.soil_moisture || '--'}</p>
-								<p class="text-sm text-gray-500">Kelembapan (%)</p>
-							</div>
-							<div class="bg-white p-4 rounded-xl text-center">
-								<span class="material-icons text-3xl text-purple-500">science</span>
-								<p class="mt-2 text-2xl font-bold text-gray-800 sensor-value" data-sensor="soil_ph">${readings.soil_ph || '--'}</p>
-								<p class="text-sm text-gray-500">pH Tanah</p>
-							</div>
-						</div>
-					</div>
-
-					<!-- NPK Nutrients -->
-					<div class="bg-gray-50 p-6 rounded-xl lg:col-span-2">
-						<h4 class="text-lg font-semibold text-gray-700 mb-4">
-							<span class="material-icons mr-2 text-green-600">eco</span>
-							Kondisi Nutrisi Tanah (NPK)
-						</h4>
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-							<div class="bg-white p-4 rounded-xl text-center">
-								<div class="relative w-16 h-16 mx-auto bg-green-100 border-2 border-green-200 rounded-lg flex flex-col items-center justify-center">
-									<span class="text-3xl font-bold text-green-700">N</span>
-									<span class="text-xs font-semibold">Nitrogen</span>
-								</div>
-								<p class="mt-3 text-xl font-bold text-gray-800 sensor-value" data-sensor="nitrogen">${readings.nitrogen || '--'}</p>
-								<p class="text-sm text-gray-500">mg/kg</p>
-							</div>
-							<div class="bg-white p-4 rounded-xl text-center">
-								<div class="relative w-16 h-16 mx-auto bg-orange-100 border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center">
-									<span class="text-3xl font-bold text-orange-700">P</span>
-									<span class="text-xs font-semibold">Phosphorus</span>
-								</div>
-								<p class="mt-3 text-xl font-bold text-gray-800 sensor-value" data-sensor="phosphorus">${readings.phosphorus || '--'}</p>
-								<p class="text-sm text-gray-500">mg/kg</p>
-							</div>
-							<div class="bg-white p-4 rounded-xl text-center">
-								<div class="relative w-16 h-16 mx-auto bg-blue-100 border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center">
-									<span class="text-3xl font-bold text-blue-700">K</span>
-									<span class="text-xs font-semibold">Potassium</span>
-								</div>
-								<p class="mt-3 text-xl font-bold text-gray-800 sensor-value" data-sensor="potassium">${readings.potassium || '--'}</p>
-								<p class="text-sm text-gray-500">mg/kg</p>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div class="last-updated text-center mt-4">
-					Terakhir update: ${readings.timestamp ? new Date(readings.timestamp).toLocaleString('id-ID') : 'Belum ada data'}
-				</div>
-			`;
-		}
-
-		createNoDataHTML() {
-			return `
-				<div class="text-center py-8 text-gray-500">
-					<span class="material-icons text-4xl mb-2">sensors_off</span>
-					<p>Belum ada data sensor</p>
-				</div>
-			`;
-		}
-
-		updateSensorData(data) {
-			console.log("updateSensorData called with:", data);
-			console.log("Looking for device card with UUID:", data.device_uuid);
-
-			const deviceCard = document.querySelector(`[data-device-uuid="${data.device_uuid}"]`);
-			console.log("Device card found:", deviceCard);
-
-			if (!deviceCard) {
-				console.warn("Device card not found:", data.device_uuid);
-				console.log("Available device cards:");
-				document.querySelectorAll("[data-device-uuid]").forEach((card) => {
-					console.log("- UUID:", card.getAttribute("data-device-uuid"));
-				});
+		function animateValue(element, start, end, duration) {
+			if (!element) return;
+			if (start === end || isNaN(start) || isNaN(end)) {
+				element.textContent = end + (element.getAttribute("data-unit") || "");
 				return;
 			}
 
-			console.log("Updating sensor data:", data.data);
+			const range = end - start;
+			const startTime = performance.now();
+			const unit = element.getAttribute("data-unit") || "";
 
-			// Update sensor values dengan animasi
-			Object.entries(data.data).forEach(([sensorType, value]) => {
-				const sensorElement = deviceCard.querySelector(`[data-sensor="${sensorType}"]`);
-				console.log(`Sensor ${sensorType}:`, sensorElement, "Value:", value);
+			function step(currentTime) {
+				const elapsedTime = currentTime - startTime;
+				const progress = Math.min(elapsedTime / duration, 1);
+				let currentValue = start + range * progress;
 
-				if (sensorElement && value !== null && value !== undefined) {
-					// Format nilai sesuai tipe sensor
-					const formattedValue = this.formatSensorValue(sensorType, value);
-					console.log(`Updating ${sensorType} from ${sensorElement.textContent} to ${formattedValue}`);
-					sensorElement.textContent = formattedValue;
+				const decimals = parseInt(element.getAttribute("data-decimal") || "0");
+				element.textContent = currentValue.toFixed(decimals) + unit;
 
-					// Tambah animasi update
-					sensorElement.classList.add("updated");
-					setTimeout(() => sensorElement.classList.remove("updated"), 1000);
+				if (progress < 1) {
+					requestAnimationFrame(step);
+				} else {
+					element.textContent = parseFloat(end).toFixed(decimals) + unit;
 				}
-			});
-
-			// Update timestamp
-			const timestampElement = deviceCard.querySelector(".last-updated");
-			if (timestampElement) {
-				const timestamp = new Date(data.timestamp);
-				timestampElement.textContent = `Terakhir update: ${timestamp.toLocaleString("id-ID")}`;
-				console.log("Timestamp updated:", timestampElement.textContent);
 			}
-
-			// Update device status ke online jika belum
-			this.updateDeviceStatusInCard(deviceCard, "online");
-
-			// Update device counters
-			this.updateDeviceCounters();
-
-			console.log("Sensor data update completed");
+			requestAnimationFrame(step);
 		}
 
-		updateDeviceCounters() {
-			const totalDevices = document.querySelectorAll('[data-device-uuid]').length;
-			const onlineDevices = document.querySelectorAll('[data-device-uuid] .device-status-indicator.text-green-600').length;
-			const offlineDevices = totalDevices - onlineDevices;
+		function updateUI(data) {
+			const sensorsToUpdate = ["air_temperature", "air_humidity", "soil_moisture", "soil_ph", "wind_speed", "wind_direction", "nitrogen", "phosphorus", "potassium"];
 
-			if (this.totalCountElement) {
-				this.totalCountElement.textContent = totalDevices;
-			}
+			sensorsToUpdate.forEach((sensorKey) => {
+				const element = document.querySelector(`[data-sensor="${sensorKey}"]`);
+				const newValue = data[sensorKey];
 
-			if (this.onlineCountElement) {
-				this.onlineCountElement.textContent = onlineDevices;
-			}
-
-			if (this.offlineCountElement) {
-				this.offlineCountElement.textContent = offlineDevices;
-			}
-		}
-
-		updateDeviceStatus(data) {
-			const deviceCard = document.querySelector(`[data-device-uuid="${data.device_uuid}"]`);
-			if (deviceCard) {
-				this.updateDeviceStatusInCard(deviceCard, data.status);
-
-				if (data.battery_level !== undefined) {
-					const batteryElement = deviceCard.querySelector(".device-battery");
-					if (batteryElement) {
-						batteryElement.textContent = data.battery_level;
+				if (element && newValue !== undefined && newValue !== null) {
+					const unit = element.getAttribute("data-unit") || "";
+					if (sensorKey === "wind_direction") {
+						element.textContent = newValue + unit;
+					} else {
+						const oldValue = parseFloat(element.textContent) || 0;
+						animateValue(element, oldValue, parseFloat(newValue), 1000);
 					}
 				}
-
-				// Update counters setelah status berubah
-				this.updateDeviceCounters();
-			}
+			});
 		}
 
-		updateDeviceStatusInCard(deviceCard, status) {
-			const statusIndicator = deviceCard.querySelector(".device-status-indicator");
-			const statusText = deviceCard.querySelector(".device-status-text");
-			const statusIcon = deviceCard.querySelector(".device-status-icon");
+		const dashboardSocket = new WebSocket("ws://" + window.location.host + "/ws/dashboard/");
 
-			if (statusIndicator && statusText && statusIcon) {
-				// Remove previous status classes
-				statusIndicator.classList.remove("text-green-600", "text-red-600", "text-yellow-600");
+		dashboardSocket.onopen = function (e) {
+			const statusText = document.getElementById("device-status-label");
+			const statusIcon = document.getElementById("device-status-icon");
+			const statusContainer = document.getElementById("device-status-text");
 
-				// Add new status class and update content
-				if (status === "online") {
-					statusIndicator.classList.add("text-green-600");
-					statusIcon.textContent = "signal_cellular_alt";
-				} else if (status === "offline") {
-					statusIndicator.classList.add("text-red-600");
+			if (statusText && statusIcon) {
+				statusText.textContent = "Online";
+				statusContainer.classList.remove("text-red-600");
+				statusContainer.classList.add("text-green-600");
+				statusIcon.textContent = "signal_cellular_alt";
+			}
+		};
+
+		dashboardSocket.onmessage = function (e) {
+			const data = JSON.parse(e.data);
+
+			if (data.type === "sensor_update") {
+				updateUI(data.data);
+			} else if (data.type === "device_status_update") {
+				const statusText = document.getElementById("device-status-label");
+				const statusIcon = document.getElementById("device-status-icon");
+				const statusContainer = document.getElementById("device-status-text");
+				if (statusText && statusIcon && data.status === "offline") {
+					statusText.textContent = "Offline";
+					statusContainer.classList.remove("text-green-600");
+					statusContainer.classList.add("text-red-600");
 					statusIcon.textContent = "signal_cellular_off";
-				} else {
-					statusIndicator.classList.add("text-yellow-600");
-					statusIcon.textContent = "signal_cellular_null";
 				}
-
-				statusText.textContent = status.charAt(0).toUpperCase() + status.slice(1);
 			}
-		}
+		};
 
-		formatSensorValue(sensorType, value) {
-			if (value === null || value === undefined) return "--";
+		dashboardSocket.onclose = function (e) {
+			console.error("Koneksi WebSocket Dashboard ditutup.");
+			const statusText = document.getElementById("device-status-label");
+			const statusIcon = document.getElementById("device-status-icon");
+			const statusContainer = document.getElementById("device-status-text");
 
-			switch (sensorType) {
-				case "air_temperature":
-				case "soil_ph":
-					return Number(value).toFixed(1);
-				case "air_humidity":
-				case "soil_moisture":
-					return Math.round(Number(value));
-				case "wind_speed":
-					return Number(value).toFixed(1);
-				case "nitrogen":
-				case "phosphorus":
-				case "potassium":
-					return Math.round(Number(value));
-				case "rainfall":
-					return Number(value).toFixed(2);
-				default:
-					return value;
+			if (statusText && statusIcon) {
+				statusText.textContent = "Offline";
+				statusContainer.classList.remove("text-green-600");
+				statusContainer.classList.add("text-red-600");
+				statusIcon.textContent = "signal_cellular_off";
 			}
-		}
-
-		updateStatus(status, text, icon) {
-			if (!this.statusIndicator) return;
-
-			this.statusIndicator.className = `connection-indicator ${status}`;
-			this.statusIndicator.innerHTML = `
-	           <span class="material-icons text-sm mr-1">${icon}</span>
-	           ${text}
-	       `;
-		}
-
-		showNotification(message, type = "info", duration = 3000) {
-			const notification = document.createElement("div");
-			notification.className = `
-	           notification-${type} p-4 rounded-lg shadow-lg mb-2
-	           transform transition-all duration-300 translate-x-full
-	           ${type === "success" ? "bg-green-100 border-l-4 border-green-500 text-green-700" : ""}
-	           ${type === "error" ? "bg-red-100 border-l-4 border-red-500 text-red-700" : ""}
-	           ${type === "warning" ? "bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700" : ""}
-	           ${type === "info" ? "bg-blue-100 border-l-4 border-blue-500 text-blue-700" : ""}
-	       `;
-
-			notification.innerHTML = `
-	           <div class="flex items-center justify-between">
-	               <span class="text-sm font-medium">${message}</span>
-	               <button onclick="this.parentElement.parentElement.remove()"
-	                       class="ml-4 text-gray-400 hover:text-gray-600">
-	                   <span class="material-icons text-lg">close</span>
-	               </button>
-	           </div>
-	       `;
-
-			const container = document.getElementById("notifications");
-			container.appendChild(notification);
-
-			// Animate in
-			setTimeout(() => {
-				notification.classList.remove("translate-x-full");
-			}, 100);
-
-			// Auto remove
-			if (duration > 0) {
-				setTimeout(() => {
-					notification.classList.add("translate-x-full");
-					setTimeout(() => notification.remove(), 300);
-				}, duration);
-			}
-		}
-
-		attemptReconnect() {
-			if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-				this.updateStatus("disconnected", "Gagal terhubung", "wifi_off");
-				this.showNotification("Gagal terhubung kembali. Silakan refresh halaman.", "error", 0);
-				return;
-			}
-
-			this.reconnectAttempts++;
-			const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts), 30000);
-
-			this.updateStatus("connecting", `Mencoba lagi... (${this.reconnectAttempts})`, "wifi_tethering");
-
-			setTimeout(() => {
-				this.connect();
-			}, delay);
-		}
-
-		handleConnectionError() {
-			this.updateStatus("disconnected", "Error koneksi", "wifi_off");
-			this.showNotification("Error koneksi WebSocket", "error");
-		}
-
-		disconnect() {
-			if (this.socket) {
-				this.socket.close(1000);
-			}
-		}
-	}
-
-	// Cleanup on page unload
-	window.addEventListener("beforeunload", function () {
-		if (window.dashboardWS) {
-			window.dashboardWS.disconnect();
-		}
+		};
 	});
 </script>
 {% endblock %}

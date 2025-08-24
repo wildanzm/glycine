@@ -1,6 +1,6 @@
 /**
  * Dashboard WebSocket Client
- * Mengelola koneksi WebSocket ke dashboard dan menampilkan data real-time
+ * Manages WebSocket connection to dashboard and displays real-time data
  */
 
 class DashboardWebSocket {
@@ -26,7 +26,7 @@ class DashboardWebSocket {
 
 	connect() {
 		try {
-			// Ganti dengan URL server Anda
+			// Replace with your server URL
 			const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 			const wsUrl = `${protocol}//${window.location.host}/ws/dashboard/`;
 
@@ -40,7 +40,6 @@ class DashboardWebSocket {
 
 	setupSocketEvents() {
 		this.socket.onopen = (event) => {
-			console.log("Connected to dashboard WebSocket");
 			this.isConnected = true;
 			this.reconnectAttempts = 0;
 			this.updateConnectionStatus("connected");
@@ -59,7 +58,6 @@ class DashboardWebSocket {
 		};
 
 		this.socket.onclose = (event) => {
-			console.log("Dashboard WebSocket connection closed:", event.code);
 			this.isConnected = false;
 			this.updateConnectionStatus("disconnected");
 
@@ -76,8 +74,6 @@ class DashboardWebSocket {
 	}
 
 	handleMessage(data) {
-		console.log("Received message:", data);
-
 		switch (data.type) {
 			case "connection_established":
 				this.showNotification("Terhubung ke dashboard", "success");
@@ -100,7 +96,6 @@ class DashboardWebSocket {
 				break;
 
 			default:
-				console.log("Unknown message type:", data.type);
 		}
 	}
 
@@ -276,8 +271,6 @@ class DashboardWebSocket {
 
 	updateLatestReadings(deviceUuid, readings) {
 		// Create modal or update specific section with detailed readings
-		console.log(`Latest readings for ${deviceUuid}:`, readings);
-
 		// You can implement a modal or dedicated section here
 		// For now, just log the data
 	}

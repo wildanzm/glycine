@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script untuk simulasi perangkat IoT yang mengirim data sensor ke Django WebSocket
-Gunakan script ini untuk testing DeviceConsumer
+Script to simulate an IoT device sending sensor data to a Django WebSocket.
+Use this script to test DeviceConsumer.
 """
 
 import asyncio
@@ -21,7 +21,7 @@ class IoTDeviceSimulator:
         self.is_running = False
         
     async def connect(self):
-        """Koneksi ke WebSocket server"""
+        """Connect to the WebSocket server"""
         try:
             self.websocket = await websockets.connect(self.server_url)
             print(f"✅ Device {self.device_uuid} connected to {self.server_url}")
@@ -31,17 +31,17 @@ class IoTDeviceSimulator:
             return False
     
     async def disconnect(self):
-        """Tutup koneksi WebSocket"""
+        """Close the WebSocket connection"""
         if self.websocket:
             await self.websocket.close()
             print(f"🔌 Device {self.device_uuid} disconnected")
     
     async def send_sensor_data(self):
-        """Kirim data sensor simulasi"""
+        """Send simulated sensor data"""
         if not self.websocket:
             return False
             
-        # Generate data sensor simulasi
+        # Generate simulated sensor data
         sensor_data = {
             "type": "sensor_data",
             "data": {
@@ -50,7 +50,7 @@ class IoTDeviceSimulator:
                 "soil_moisture": round(random.uniform(30.0, 80.0), 1),
                 "soil_ph": round(random.uniform(5.5, 8.0), 1),
                 "wind_speed": round(random.uniform(0.0, 25.0), 1),
-                "wind_direction": random.choice(["N", "NE", "E", "SE", "S", "SW", "W", "NW"]),
+                "wind_direction": random.choice(["Barat", "Timur Laut", "Utara", "Tenggara", "Selatan", "Barat Daya", "Barat Laut"]),
                 "nitrogen": round(random.uniform(80.0, 200.0), 0),
                 "phosphorus": round(random.uniform(50.0, 150.0), 0),
                 "potassium": round(random.uniform(150.0, 300.0), 0),
@@ -70,7 +70,7 @@ class IoTDeviceSimulator:
             return False
     
     async def send_heartbeat(self):
-        """Kirim heartbeat untuk keep-alive"""
+        """Send a heartbeat to keep the connection alive"""
         if not self.websocket:
             return False
             
@@ -88,13 +88,13 @@ class IoTDeviceSimulator:
             return False
     
     async def listen_for_messages(self):
-        """Listen untuk pesan dari server"""
+        """Listen for messages from the server"""
         try:
             async for message in self.websocket:
                 data = json.loads(message)
                 print(f"📨 Received: {data}")
                 
-                # Handle berbagai tipe response
+                # Handle different response types
                 if data.get('type') == 'connection_established':
                     print(f"✅ Connection confirmed by server")
                 elif data.get('type') == 'data_received':
@@ -109,12 +109,12 @@ class IoTDeviceSimulator:
     
     async def run_simulation(self, duration_minutes=10, data_interval=30, heartbeat_interval=60):
         """
-        Jalankan simulasi perangkat IoT
-        
+        Run the IoT device simulation.
+
         Args:
-            duration_minutes: Durasi simulasi dalam menit
-            data_interval: Interval pengiriman data sensor (detik)
-            heartbeat_interval: Interval heartbeat (detik)
+            duration_minutes: Simulation duration in minutes.
+            data_interval: Interval for sending sensor data (seconds).
+            heartbeat_interval: Heartbeat interval (seconds).
         """
         if not await self.connect():
             return
@@ -134,17 +134,17 @@ class IoTDeviceSimulator:
             while self.is_running and (time.time() - start_time) < (duration_minutes * 60):
                 current_time = time.time()
                 
-                # Kirim data sensor
+                # Send sensor data
                 if current_time - last_data_time >= data_interval:
                     await self.send_sensor_data()
                     last_data_time = current_time
                 
-                # Kirim heartbeat
+                # Send heartbeat
                 if current_time - last_heartbeat_time >= heartbeat_interval:
                     await self.send_heartbeat()
                     last_heartbeat_time = current_time
                 
-                # Sleep sebentar untuk tidak memblokir
+                # Sleep briefly to avoid blocking
                 await asyncio.sleep(1)
                 
         except KeyboardInterrupt:
@@ -155,7 +155,7 @@ class IoTDeviceSimulator:
             await self.disconnect()
     
     async def send_single_reading(self):
-        """Kirim satu reading saja untuk testing"""
+        """Send a single reading for testing"""
         if await self.connect():
             await self.send_sensor_data()
             await asyncio.sleep(2)  # Wait for response
@@ -197,24 +197,24 @@ if __name__ == "__main__":
 
 
 """
-Cara penggunaan:
+How to use:
 
 1. Install dependencies:
    pip install websockets
 
-2. Pastikan device sudah terdaftar di database Django:
+2. Make sure the device is registered in the Django database:
    python manage.py shell
    >>> from core.models import Device
    >>> Device.objects.create(device_uuid='device-001', name='Test Device 1')
 
-3. Jalankan simulasi:
+3. Run the simulation:
    python iot_device_simulator.py device-001
    
-   Atau dengan parameter custom:
+   Or with custom parameters:
    python iot_device_simulator.py device-001 --duration 5 --data-interval 10
    
-   Atau kirim satu reading saja:
+   Or send a single reading:
    python iot_device_simulator.py device-001 --single
 
-4. Lihat data di dashboard: http://localhost:8000/dashboard
+4. View the data on the dashboard: http://localhost:8000/dashboard
 """

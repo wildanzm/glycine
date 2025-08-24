@@ -125,15 +125,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ASGI_APPLICATION = 'glycine.asgi.application'
 
 # Channel layer configuration
-# Untuk development, gunakan in-memory channel layer
-# Untuk production, gunakan Redis
+# For development, use the in-memory channel layer
+# For production, use Redis
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     }
 }
 
-# Uncomment lines below untuk menggunakan Redis di production
+# Uncomment the lines below to use Redis in production
 # CHANNEL_LAYERS = {
 #     'default': {
 #         'BACKEND': 'channels_redis.core.RedisChannelLayer',

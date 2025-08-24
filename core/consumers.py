@@ -7,10 +7,10 @@ from .models import Device, SensorReading
 
 
 class DeviceConsumer(AsyncWebsocketConsumer):
-    """WebSocket Consumer untuk menerima data dari perangkat IoT"""
+    """WebSocket Consumer to receive data from IoT devices"""
     
     async def connect(self):
-        """Dipanggil ketika perangkat IoT terhubung ke WebSocket"""
+        """Called when an IoT device connects to the WebSocket"""
         self.device_uuid = self.scope['url_route']['kwargs']['device_uuid']
         self.device = None
         
@@ -32,12 +32,12 @@ class DeviceConsumer(AsyncWebsocketConsumer):
             await self.close(code=4000)
 
     async def disconnect(self, close_code):
-        """Dipanggil ketika perangkat IoT terputus"""
+        """Called when the IoT device disconnects"""
         if self.device:
             await self.update_device_status(self.device, 'offline')
 
     async def receive(self, text_data):
-        """Menerima data sensor dari perangkat IoT"""
+        """Receives sensor data from the IoT device"""
         try:
             data = json.loads(text_data)
             message_type = data.get('type', 'unknown')
@@ -157,10 +157,10 @@ class DeviceConsumer(AsyncWebsocketConsumer):
 
 
 class DashboardConsumer(AsyncWebsocketConsumer):
-    """WebSocket Consumer untuk dashboard browser"""
+    """WebSocket Consumer for the browser dashboard"""
     
     async def connect(self):
-        """Dipanggil ketika browser terhubung ke dashboard WebSocket"""
+        """Called when the browser connects to the dashboard WebSocket"""
         self.group_name = 'dashboard_group'
         
         await self.channel_layer.group_add(
@@ -179,14 +179,14 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         await self.send_online_devices()
 
     async def disconnect(self, close_code):
-        """Dipanggil ketika dashboard terputus"""
+        """Called when the dashboard disconnects"""
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
 
     async def receive(self, text_data):
-        """Menerima pesan dari dashboard browser"""
+        """Receives messages from the browser dashboard"""
         try:
             data = json.loads(text_data)
             message_type = data.get('type', 'unknown')
@@ -211,12 +211,12 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             }))
 
     async def sensor_data_update(self, event):
-        """Handler untuk menerima update data sensor dari DeviceConsumer"""
+        """Handler to receive sensor data updates from DeviceConsumer"""
         message = event['message']
         await self.send(text_data=json.dumps(message))
 
     async def device_status_update(self, event):
-        """Handler untuk update status device"""
+        """Handler for device status updates"""
         await self.send(text_data=json.dumps(event['message']))
 
     @database_sync_to_async

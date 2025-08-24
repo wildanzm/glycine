@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script untuk membuat sample devices dan data sensor untuk testing dashboard
+Script to create sample devices and sensor data for dashboard testing
 """
 
 import os
@@ -17,7 +17,7 @@ from core.models import Device, SensorReading
 
 
 def create_sample_devices():
-    """Buat sample devices untuk testing"""
+    """Create sample devices for testing"""
     
     # Device 1 - Online
     device1, created = Device.objects.get_or_create(
@@ -65,7 +65,7 @@ def create_sample_devices():
 
 
 def create_sample_readings(devices, num_readings=5):
-    """Buat sample sensor readings untuk testing"""
+    """Create sample sensor readings for testing"""
     
     for device in devices:
         if device.status == 'offline':
@@ -92,14 +92,14 @@ def create_sample_readings(devices, num_readings=5):
                 rainfall=round(random.uniform(0.0, 3.0), 2)
             )
             
-            # Update timestamp manually untuk historical data
+            # Update timestamp manually for historical data
             SensorReading.objects.filter(id=reading.id).update(timestamp=timestamp)
             
         print(f"✅ Created {num_readings} readings for {device.name}")
 
 
 def update_device_status():
-    """Update status devices"""
+    """Update device statuses"""
     devices = Device.objects.all()
     
     for device in devices:
@@ -112,7 +112,7 @@ def update_device_status():
 
 
 def show_summary():
-    """Tampilkan ringkasan data"""
+    """Display data summary"""
     print("\n" + "="*50)
     print("📋 SUMMARY")
     print("="*50)
