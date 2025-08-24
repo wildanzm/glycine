@@ -1,4 +1,4 @@
-# Proyek Glycine: Sistem Monitoring Pertanian IoT Real-time
+# Proyek Glycine: Sistem Monitoring Pertanian Kedelai
 
   Selamat datang di dokumentasi resmi Proyek Glycine. Glycine adalah sebuah sistem monitoring pertanian presisi berbasis IoT dan WebSocket yang dirancang untuk memantau kondisi lahan secara real-time melalui dashboard web yang modern dan interaktif.
 
