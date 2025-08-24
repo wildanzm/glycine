@@ -1,39 +1,39 @@
 # Proyek Glycine: Sistem Monitoring Pertanian Kedelai
 
-  Selamat datang di dokumentasi resmi Proyek Glycine. Glycine adalah sebuah sistem monitoring pertanian presisi berbasis IoT dan WebSocket yang dirancang untuk memantau kondisi lahan secara real-time melalui dashboard web yang modern dan interaktif.
+Glycine adalah sebuah sistem monitoring pertanian kedelai berbasis IoT dan WebSocket yang dirancang untuk memantau kondisi lahan secara real-time melalui dashboard web yang modern dan interaktif.
 
 ## 📋 Daftar Isi
 
-1.  [Fitur Utama](https://www.google.com/search?q=%23-1-fitur-utama)
-2.  [Tumpukan Teknologi (Tech Stack)](https://www.google.com/search?q=%23-2-tumpukan-teknologi-tech-stack)
-3.  [Setup & Instalasi (Untuk Development)](https://www.google.com/search?q=%23-3-setup--instalasi-untuk-development)
-4.  [Menjalankan Proyek](https://www.google.com/search?q=%23-4-menjalankan-proyek)
-5.  [Panduan Implementasi untuk Perangkat IoT (Raspberry Pi)](https://www.google.com/search?q=%23-5-panduan-implementasi-untuk-perangkat-iot-raspberry-pi)
+1.  [Fitur Utama](#✨-1-fitur-utama)
+2.  [Tumpukan Teknologi (Tech Stack)](#️-2-tumpukan-teknologi-tech-stack)
+3.  [Setup & Instalasi (Untuk Development)](#️-3-setup--instalasi-untuk-development)
+4.  [Menjalankan Proyek](#️-4-menjalankan-proyek)
+5.  [Panduan Implementasi untuk Perangkat IoT (Raspberry Pi)](#️-5-panduan-implementasi-untuk-perangkat-iot-raspberry-pi)
 
------
+---
 
 ## ✨ 1. Fitur Utama
 
-  - **Dashboard Real-time**: Menampilkan data sensor secara langsung dari perangkat di lapangan tanpa perlu me-refresh halaman, lengkap dengan animasi transisi data.
-  - **Manajemen Perangkat**: Antarmuka untuk menambah, mengedit, dan menghapus perangkat IoT melalui modal interaktif.
-  - **Arsitektur WebSocket**: Komunikasi dua arah yang efisien antara server dan perangkat IoT menggunakan Django Channels.
-  - **UI Modern & Responsif**: Tampilan yang bersih, minimalis, dan dapat diakses dari desktop (dengan sidebar *collapsible*) maupun mobile (dengan *bottom navigation*).
-  - **Simulasi & Testing**: Dilengkapi dengan skrip untuk simulasi pengiriman data dari perangkat (`iot_device_simulator.py`) dan pengisian data sampel ke database (`setup_sample_data.py`).
+-   **Dashboard Real-time**: Menampilkan data sensor secara langsung dari perangkat di lapangan tanpa perlu me-refresh halaman, lengkap dengan animasi transisi data.
+-   **Manajemen Perangkat**: Antarmuka untuk menambah, mengedit, dan menghapus perangkat IoT melalui modal interaktif.
+-   **Arsitektur WebSocket**: Komunikasi dua arah yang efisien antara server dan perangkat IoT menggunakan Django Channels.
+-   **UI Modern & Responsif**: Tampilan yang bersih, minimalis, dan dapat diakses dari desktop (dengan sidebar _collapsible_) maupun mobile (dengan _bottom navigation_).
+-   **Simulasi & Testing**: Dilengkapi dengan skrip untuk simulasi pengiriman data dari perangkat (`iot_device_simulator.py`) dan pengisian data sampel ke database (`setup_sample_data.py`).
 
------
+---
 
 ## 🛠️ 2. Tumpukan Teknologi (Tech Stack)
 
-| Kategori | Teknologi |
-| :--- | :--- |
-| **Backend** | Django 5.2.5, Django Channels |
-| **Server ASGI** | Daphne |
-| **Database** | MySQL |
-| **Frontend** | Tailwind CSS, Flowbite, JavaScript |
-| **Komunikasi IoT**| WebSocket |
-| **Environment** | python-decouple (`.env` file) |
+| Kategori           | Teknologi                          |
+| :----------------- | :--------------------------------- |
+| **Backend**        | Django 5.2.5, Django Channels      |
+| **Server ASGI**    | Daphne                             |
+| **Database**       | MySQL                              |
+| **Frontend**       | Tailwind CSS, Flowbite, JavaScript |
+| **Komunikasi IoT** | WebSocket                          |
+| **Environment**    | python-decouple (`.env` file)      |
 
------
+---
 
 ## 🚀 3. Setup & Instalasi (Untuk Development)
 
@@ -41,9 +41,9 @@ Ikuti langkah-langkah ini untuk menjalankan proyek di komputer lokal Anda.
 
 #### **Prasyarat**
 
-  - Python 3.10+
-  - Git
-  - Database MySQL yang sedang berjalan
+-   Python 3.10+
+-   Git
+-   Database MySQL yang sedang berjalan
 
 #### **Langkah-langkah Setup**
 
@@ -72,9 +72,9 @@ Ikuti langkah-langkah ini untuk menjalankan proyek di komputer lokal Anda.
 
 4.  **Konfigurasi Environment (`.env`)**
 
-      - Salin file `.env.example` menjadi `.env`.
-      - Isi semua nilai yang dibutuhkan, terutama `SECRET_KEY` dan detail koneksi database (`DB_NAME`, `DB_USER`, `DB_PASSWORD`).
-      - Untuk membuat `SECRET_KEY` baru secara otomatis, jalankan:
+    -   Salin file `.env.example` menjadi `.env`.
+    -   Isi semua nilai yang dibutuhkan, terutama `SECRET_KEY` dan detail koneksi database (`DB_NAME`, `DB_USER`, `DB_PASSWORD`).
+    -   Untuk membuat `SECRET_KEY` baru secara otomatis, jalankan:
         ```bash
         python manage.py createsecretkey
         ```
@@ -93,7 +93,7 @@ Ikuti langkah-langkah ini untuk menjalankan proyek di komputer lokal Anda.
     python setup_sample_data.py
     ```
 
------
+---
 
 ## ▶️ 4. Menjalankan Proyek
 
@@ -107,31 +107,30 @@ Ikuti langkah-langkah ini untuk menjalankan proyek di komputer lokal Anda.
 
 2.  **Akses Halaman Lain**
 
-      - **Dashboard**: `http://127.0.0.1:8000/dashboard`
-      - **Manajemen Perangkat**: `http://127.0.0.1:8000/devices`
-      - **Pompa Air**: `http://127.0.0.1:8000/pompa-air`
+    -   **Dashboard**: `http://127.0.0.1:8000/dashboard`
+    -   **Manajemen Perangkat**: `http://127.0.0.1:8000/devices`
+    -   **Pompa Air**: `http://127.0.0.1:8000/pompa-air`
 
------
+---
 
 ## 📡 5. Panduan Implementasi untuk Perangkat IoT (Raspberry Pi)
 
-
 ### **Tujuan Komunikasi**
 
-Perangkat Anda harus terhubung ke server Glycine melalui **WebSocket** untuk mengirim data sensor dan menjaga status *online*.
+Perangkat Anda harus terhubung ke server Glycine melalui **WebSocket** untuk mengirim data sensor dan menjaga status _online_.
 
 ### **A. Koneksi WebSocket**
 
-  - **URL Endpoint**: Perangkat harus terhubung ke URL berikut:
+-   **URL Endpoint**: Perangkat harus terhubung ke URL berikut:
 
     ```
     ws://<alamat_server>/ws/device/<device_uuid>/
     ```
 
-      - **`<alamat_server>`**: Ganti dengan alamat IP dan port server Django (misal: `192.168.1.10:8000` saat development).
-      - **`<device_uuid>`**: Ganti dengan UUID/MAC Address unik dari perangkat yang sudah terdaftar di sistem.
+    -   **`<alamat_server>`**: Ganti dengan alamat IP dan port server Django (misal: `192.168.1.10:8000` saat development).
+    -   **`<device_uuid>`**: Ganti dengan UUID/MAC Address unik dari perangkat yang sudah terdaftar di sistem.
 
-  - **Proses Koneksi**:
+-   **Proses Koneksi**:
 
     1.  Saat terhubung, server akan otomatis mengubah status perangkat menjadi `online`.
     2.  Server akan mengirim pesan konfirmasi: `{"type": "connection_established", ...}`.
@@ -143,34 +142,34 @@ Perangkat harus mengirim data dalam format **JSON** dengan struktur sebagai beri
 
 ```json
 {
-  "type": "sensor_data",
-  "data": {
-    "air_temperature": 29.5,
-    "air_humidity": 76.0,
-    "soil_moisture": 68.0,
-    "soil_ph": 6.8,
-    "wind_speed": 12.5,
-    "wind_direction": "Tenggara",
-    "nitrogen": 120.0,
-    "phosphorus": 85.0,
-    "potassium": 210.0,
-    "rainfall": 0.5,
-    "battery_level": 92
-  }
+	"type": "sensor_data",
+	"data": {
+		"air_temperature": 29.5,
+		"air_humidity": 76.0,
+		"soil_moisture": 68.0,
+		"soil_ph": 6.8,
+		"wind_speed": 12.5,
+		"wind_direction": "Tenggara",
+		"nitrogen": 120.0,
+		"phosphorus": 85.0,
+		"potassium": 210.0,
+		"rainfall": 0.5,
+		"battery_level": 92
+	}
 }
 ```
 
-  - **`type`**: Wajib diisi `"sensor_data"`.
-  - **`data`**: Objek yang berisi semua nilai sensor. Jika ada sensor yang datanya tidak tersedia, kirim `null` atau jangan sertakan *key*-nya sama sekali.
+-   **`type`**: Wajib diisi `"sensor_data"`.
+-   **`data`**: Objek yang berisi semua nilai sensor. Jika ada sensor yang datanya tidak tersedia, kirim `null` atau jangan sertakan _key_-nya sama sekali.
 
 ### **C. Heartbeat**
 
-Untuk menjaga koneksi tetap aktif, perangkat disarankan mengirim pesan *heartbeat* setiap 1-5 menit.
+Untuk menjaga koneksi tetap aktif, perangkat disarankan mengirim pesan _heartbeat_ setiap 1-5 menit.
 
 ```json
 {
-  "type": "heartbeat",
-  "timestamp": "2025-08-21T15:00:00.123Z"
+	"type": "heartbeat",
+	"timestamp": "2025-08-21T15:00:00.123Z"
 }
 ```
 
@@ -178,10 +177,10 @@ Untuk menjaga koneksi tetap aktif, perangkat disarankan mengirim pesan *heartbea
 
 Cara termudah untuk memahami implementasinya adalah dengan melihat script **`iot_device_simulator.py`**. Script ini adalah contoh kerja lengkap untuk:
 
-  - Menghubungkan ke server WebSocket.
-  - Memformat pesan JSON dengan benar.
-  - Mengirim data sensor dan heartbeat.
-  - Menerima balasan dari server.
+-   Menghubungkan ke server WebSocket.
+-   Memformat pesan JSON dengan benar.
+-   Mengirim data sensor dan heartbeat.
+-   Menerima balasan dari server.
 
 **Bisa mengadaptasi logika dari script ini ke dalam program utama di Raspberry Pi.** Untuk menguji, jalankan:
 
