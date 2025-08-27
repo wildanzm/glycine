@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Glycine | Dashboard{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}SoySmart 360 | Dashboard{% endblock %} {% block content %}
 <div id="dashboard-container" class="space-y-6">
 	{% if device %}
 	<div class="bg-white p-6 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4">
@@ -43,7 +43,7 @@
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<span class="material-icons text-3xl text-purple-500">science</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_ph" data-decimal="1">{{ reading.soil_ph|floatformat:1|default:"--" }}</p>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_ph" data-decimal="1" data-unit="">{{ reading.soil_ph|floatformat:1|default:"--" }}</p>
 					<p class="text-sm text-gray-500">pH Tanah</p>
 				</div>
 			</div>
@@ -71,32 +71,25 @@
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-green-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">7</span>
-						<span class="text-4xl font-bold text-green-700">N</span>
-						<span class="text-xs font-semibold">Nitrogen</span>
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">7</span><span class="text-4xl font-bold text-green-700">N</span><span class="text-xs font-semibold">Nitrogen</span>
 					</div>
 					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="nitrogen" data-decimal="0" data-unit=" mg/kg">{{ reading.nitrogen|floatformat:0|default:"--" }} mg/kg</p>
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">15</span>
-						<span class="text-4xl font-bold text-orange-700">P</span>
-						<span class="text-xs font-semibold">Phosphorus</span>
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">15</span><span class="text-4xl font-bold text-orange-700">P</span><span class="text-xs font-semibold">Phosphorus</span>
 					</div>
 					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="phosphorus" data-decimal="0" data-unit=" mg/kg">{{ reading.phosphorus|floatformat:0|default:"--" }} mg/kg</p>
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">19</span>
-						<span class="text-4xl font-bold text-blue-700">K</span>
-						<span class="text-xs font-semibold">Potassium</span>
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">19</span><span class="text-4xl font-bold text-blue-700">K</span><span class="text-xs font-semibold">Potassium</span>
 					</div>
 					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="potassium" data-decimal="0" data-unit=" mg/kg">{{ reading.potassium|floatformat:0|default:"--" }} mg/kg</p>
 				</div>
 			</div>
 		</div>
 	</div>
-
 	{% else %}
 	<div class="bg-white p-8 rounded-2xl shadow-md text-center">
 		<span class="material-icons text-6xl text-gray-300 mb-4">developer_board_off</span>
@@ -108,16 +101,17 @@
 {% endblock %} {% block extra_js %}
 <script>
 	document.addEventListener("DOMContentLoaded", function () {
+		// Fungsi animasi counter yang lebih smooth
 		function animateValue(element, start, end, duration) {
 			if (!element) return;
-			if (start === end || isNaN(start) || isNaN(end)) {
-				element.textContent = end + (element.getAttribute("data-unit") || "");
+			const unit = element.getAttribute("data-unit") || "";
+			if (start === end) {
+				element.textContent = end + unit;
 				return;
 			}
 
 			const range = end - start;
 			const startTime = performance.now();
-			const unit = element.getAttribute("data-unit") || "";
 
 			function step(currentTime) {
 				const elapsedTime = currentTime - startTime;
@@ -136,34 +130,34 @@
 			requestAnimationFrame(step);
 		}
 
+		// Fungsi utama untuk memperbarui UI
 		function updateUI(data) {
 			const sensorsToUpdate = ["air_temperature", "air_humidity", "soil_moisture", "soil_ph", "wind_speed", "wind_direction", "nitrogen", "phosphorus", "potassium"];
-
-			sensorsToUpdate.forEach((sensorKey) => {
-				const element = document.querySelector(`[data-sensor="${sensorKey}"]`);
-				const newValue = data[sensorKey];
+			sensorsToUpdate.forEach((key) => {
+				const element = document.querySelector(`[data-sensor="${key}"]`);
+				const newValue = data[key];
 
 				if (element && newValue !== undefined && newValue !== null) {
-					const unit = element.getAttribute("data-unit") || "";
-					if (sensorKey === "wind_direction") {
-						element.textContent = newValue + unit;
+					if (key === "wind_direction") {
+						element.textContent = newValue;
 					} else {
-						const oldValue = parseFloat(element.textContent) || 0;
-						animateValue(element, oldValue, parseFloat(newValue), 1000);
+						const oldValue = parseFloat(element.textContent) || parseFloat(newValue);
+						animateValue(element, oldValue, parseFloat(newValue), 1500); // Durasi animasi 1.5 detik
 					}
 				}
 			});
 		}
 
+		// --- Logika WebSocket ---
 		const dashboardSocket = new WebSocket("ws://" + window.location.host + "/ws/dashboard/");
 
 		dashboardSocket.onopen = function (e) {
-			const statusText = document.getElementById("device-status-label");
+			const statusLabel = document.getElementById("device-status-label");
 			const statusIcon = document.getElementById("device-status-icon");
 			const statusContainer = document.getElementById("device-status-text");
 
-			if (statusText && statusIcon) {
-				statusText.textContent = "Online";
+			if (statusLabel && statusIcon) {
+				statusLabel.textContent = "Online";
 				statusContainer.classList.remove("text-red-600");
 				statusContainer.classList.add("text-green-600");
 				statusIcon.textContent = "signal_cellular_alt";
@@ -172,30 +166,19 @@
 
 		dashboardSocket.onmessage = function (e) {
 			const data = JSON.parse(e.data);
-
 			if (data.type === "sensor_update") {
 				updateUI(data.data);
-			} else if (data.type === "device_status_update") {
-				const statusText = document.getElementById("device-status-label");
-				const statusIcon = document.getElementById("device-status-icon");
-				const statusContainer = document.getElementById("device-status-text");
-				if (statusText && statusIcon && data.status === "offline") {
-					statusText.textContent = "Offline";
-					statusContainer.classList.remove("text-green-600");
-					statusContainer.classList.add("text-red-600");
-					statusIcon.textContent = "signal_cellular_off";
-				}
 			}
 		};
 
 		dashboardSocket.onclose = function (e) {
 			console.error("Koneksi WebSocket Dashboard ditutup.");
-			const statusText = document.getElementById("device-status-label");
+			const statusLabel = document.getElementById("device-status-label");
 			const statusIcon = document.getElementById("device-status-icon");
 			const statusContainer = document.getElementById("device-status-text");
 
-			if (statusText && statusIcon) {
-				statusText.textContent = "Offline";
+			if (statusLabel && statusIcon) {
+				statusLabel.textContent = "Offline";
 				statusContainer.classList.remove("text-green-600");
 				statusContainer.classList.add("text-red-600");
 				statusIcon.textContent = "signal_cellular_off";
