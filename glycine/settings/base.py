@@ -127,18 +127,18 @@ ASGI_APPLICATION = 'glycine.asgi.application'
 # Channel layer configuration
 # For development, use the in-memory channel layer
 # For production, use Redis
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    }
-}
-
-# Uncomment the lines below to use Redis in production
 # CHANNEL_LAYERS = {
 #     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             'hosts': [('127.0.0.1', 6379)],
-#         },
-#     },
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+#     }
 # }
+
+# Uncomment the lines below to use Redis in production
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}

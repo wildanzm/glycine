@@ -24,3 +24,4 @@ typing_extensions==4.14.1
 tzdata==2025.2
 zope.interface==7.2
 mysqlclient==2.2.4
+channels-redis==4.2.0
