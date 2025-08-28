@@ -149,7 +149,9 @@
 		}
 
 		// --- Logika WebSocket ---
-		const dashboardSocket = new WebSocket("ws://" + window.location.host + "/ws/dashboard/");
+		const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+		const wsUrl = protocol + "//" + window.location.host + "/ws/dashboard/";
+		const dashboardSocket = new WebSocket(wsUrl);
 
 		dashboardSocket.onopen = function (e) {
 			const statusLabel = document.getElementById("device-status-label");
