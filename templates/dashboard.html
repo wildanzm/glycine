@@ -4,13 +4,17 @@
 	<div class="bg-white p-6 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4">
 		<div>
 			<h2 id="device-name" class="text-3xl font-bold text-gray-800">{{ device.name }}</h2>
-			<p class="text-gray-500 mt-1">Mac Address: <span class="font-mono text-sm">{{ device.device_uuid }}</span></p>
+			<p class="text-gray-500 mt-1">Mac Address: <span class="font-mono text-sm">{{ device.device_uuid }}</span>
+			</p>
 		</div>
 		<div class="flex items-center gap-6">
 			<div class="text-right">
 				<span class="text-sm font-medium text-gray-500">Status</span>
-				<p id="device-status-text" class="text-lg font-bold flex items-center {% if device.status == 'online' %} text-green-600 {% else %} text-red-600 {% endif %}">
-					<span id="device-status-icon" class="material-icons text-base mr-1"> {% if device.status == 'online' %} signal_cellular_alt {% else %} signal_cellular_off {% endif %} </span>
+				<p id="device-status-text"
+					class="text-lg font-bold flex items-center {% if device.status == 'online' %} text-green-600 {% else %} text-red-600 {% endif %}">
+					<span id="device-status-icon" class="material-icons text-base mr-1">
+						{% if device.status == 'online' %} signal_cellular_alt {% else %} signal_cellular_off
+						{% endif %} </span>
 					<span id="device-status-label">{{ device.status|title }}</span>
 				</p>
 			</div>
@@ -19,17 +23,28 @@
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 		<div class="bg-white p-6 rounded-2xl shadow-md">
-			<h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">Kondisi Cuaca</h3>
-			<div class="grid grid-cols-2 gap-4">
+			<h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center"><span
+					class="material-icons mr-2 text-blue-500">filter_drama</span>Kondisi Cuaca</h3>
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<span class="material-icons text-3xl text-red-500">thermostat</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_temperature" data-decimal="1" data-unit="°C">{{ reading.air_temperature|floatformat:1|default:"--" }}°C</p>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_temperature" data-decimal="1"
+						data-unit="°C">{{ reading.air_temperature|floatformat:1|default:"--" }}</p>
 					<p class="text-sm text-gray-500">Suhu Udara</p>
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<span class="material-icons text-3xl text-blue-500">water_drop</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_humidity" data-decimal="0" data-unit="%">{{ reading.air_humidity|floatformat:0|default:"--" }}%</p>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_humidity" data-decimal="0"
+						data-unit="%">
+						{{ reading.air_humidity|floatformat:0|default:"--" }}</p>
 					<p class="text-sm text-gray-500">Kelembapan Udara</p>
+				</div>
+				<div class="bg-gray-50 p-4 rounded-xl text-center">
+					<span class="material-icons text-3xl text-cyan-500">water</span>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="rainfall" data-decimal="1"
+						data-unit=" mm">
+						{{ reading.rainfall|floatformat:1|default:"--" }}</p>
+					<p class="text-sm text-gray-500">Curah Hujan</p>
 				</div>
 			</div>
 		</div>
@@ -38,12 +53,14 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<span class="material-icons text-3xl text-yellow-700">water_damage</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_moisture" data-decimal="0" data-unit="%">{{ reading.soil_moisture|floatformat:0|default:"--" }}%</p>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_moisture" data-decimal="0"
+						data-unit="%">{{ reading.soil_moisture|floatformat:0|default:"--" }}%</p>
 					<p class="text-sm text-gray-500">Kelembapan Tanah</p>
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<span class="material-icons text-3xl text-purple-500">science</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_ph" data-decimal="1" data-unit="">{{ reading.soil_ph|floatformat:1|default:"--" }}</p>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_ph" data-decimal="1"
+						data-unit="">{{ reading.soil_ph|floatformat:1|default:"--" }}</p>
 					<p class="text-sm text-gray-500">pH Tanah</p>
 				</div>
 			</div>
@@ -56,12 +73,14 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<span class="material-icons text-3xl text-gray-500">air</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_speed" data-decimal="1" data-unit=" km/h">{{ reading.wind_speed|floatformat:1|default:"--" }} km/h</p>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_speed" data-decimal="1"
+						data-unit=" km/h">{{ reading.wind_speed|floatformat:1|default:"--" }} km/h</p>
 					<p class="text-sm text-gray-500">Kecepatan</p>
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
 					<span class="material-icons text-3xl text-gray-500">explore</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_direction" data-unit="">{{ reading.wind_direction|default:"--" }}</p>
+					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_direction" data-unit="">
+						{{ reading.wind_direction|default:"--" }}</p>
 					<p class="text-sm text-gray-500">Arah Angin</p>
 				</div>
 			</div>
@@ -70,22 +89,34 @@
 			<h3 class="text-lg font-semibold text-gray-700 mb-4">Nutrisi Tanah</h3>
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-green-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">7</span><span class="text-4xl font-bold text-green-700">N</span><span class="text-xs font-semibold">Nitrogen</span>
+					<div
+						class="relative w-20 h-20 mx-auto bg-white border-2 border-green-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">7</span><span
+							class="text-4xl font-bold text-green-700">N</span><span
+							class="text-xs font-semibold">Nitrogen</span>
 					</div>
-					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="nitrogen" data-decimal="0" data-unit=" mg/kg">{{ reading.nitrogen|floatformat:0|default:"--" }} mg/kg</p>
+					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="nitrogen" data-decimal="0"
+						data-unit=" mg/kg">{{ reading.nitrogen|floatformat:0|default:"--" }} mg/kg</p>
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">15</span><span class="text-4xl font-bold text-orange-700">P</span><span class="text-xs font-semibold">Phosphorus</span>
+					<div
+						class="relative w-20 h-20 mx-auto bg-white border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">15</span><span
+							class="text-4xl font-bold text-orange-700">P</span><span
+							class="text-xs font-semibold">Phosphorus</span>
 					</div>
-					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="phosphorus" data-decimal="0" data-unit=" mg/kg">{{ reading.phosphorus|floatformat:0|default:"--" }} mg/kg</p>
+					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="phosphorus" data-decimal="0"
+						data-unit=" mg/kg">{{ reading.phosphorus|floatformat:0|default:"--" }} mg/kg</p>
 				</div>
 				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<div class="relative w-20 h-20 mx-auto bg-white border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">19</span><span class="text-4xl font-bold text-blue-700">K</span><span class="text-xs font-semibold">Potassium</span>
+					<div
+						class="relative w-20 h-20 mx-auto bg-white border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">19</span><span
+							class="text-4xl font-bold text-blue-700">K</span><span
+							class="text-xs font-semibold">Potassium</span>
 					</div>
-					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="potassium" data-decimal="0" data-unit=" mg/kg">{{ reading.potassium|floatformat:0|default:"--" }} mg/kg</p>
+					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="potassium" data-decimal="0"
+						data-unit=" mg/kg">{{ reading.potassium|floatformat:0|default:"--" }} mg/kg</p>
 				</div>
 			</div>
 		</div>
@@ -132,7 +163,7 @@
 
 		// Fungsi utama untuk memperbarui UI
 		function updateUI(data) {
-			const sensorsToUpdate = ["air_temperature", "air_humidity", "soil_moisture", "soil_ph", "wind_speed", "wind_direction", "nitrogen", "phosphorus", "potassium"];
+			const sensorsToUpdate = ["air_temperature", "air_humidity", "soil_moisture", "soil_ph", "wind_speed", "wind_direction", "nitrogen", "phosphorus", "potassium", "rainfall"];
 			sensorsToUpdate.forEach((key) => {
 				const element = document.querySelector(`[data-sensor="${key}"]`);
 				const newValue = data[key];
