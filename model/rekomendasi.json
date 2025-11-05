@@ -1,0 +1,79 @@
+{
+  "Hawar Daun Bakteri": {
+    "nama_ilmiah": "Pseudomonas savastanoi pv. glycinea",
+    "deskripsi": "Disebabkan oleh bakteri, muncul sebagai bercak kecil basah berwarna kuning hingga coklat muda pada daun, seringkali dengan lingkaran kuning di sekitarnya. Bercak bisa menyatu dan menyebabkan daun robek atau rontok.",
+    "rekomendasi": [
+      "Lakukan rotasi tanaman dengan tanaman bukan inang (misal: jagung) minimal 1-2 tahun.",
+      "Gunakan benih yang sehat dan bersertifikat, atau varietas yang tahan terhadap hawar bakteri.",
+      "Jika infeksi sudah terlihat, semprot dengan bakterisida berbahan dasar tembaga sesuai dosis anjuran.",
+      "Hindari pengairan dari atas (overhead sprinkler) karena percikan air dapat menyebarkan bakteri."
+    ]
+  },
+  "Bercak Daun Cercospora": {
+    "nama_ilmiah": "Cercospora sojina",
+    "deskripsi": "Disebabkan oleh jamur, ditandai dengan bercak tidak teratur berwarna coklat muda hingga abu-abu di bagian tengah dengan tepi coklat kemerahan atau ungu. Sering muncul di daun bagian atas.",
+    "rekomendasi": [
+      "Tanam varietas kedelai yang tahan terhadap Cercospora.",
+      "Lakukan rotasi tanaman dan bersihkan sisa-sisa tanaman (seresah) setelah panen untuk mengurangi sumber infeksi.",
+      "Terapkan fungisida yang direkomendasikan secara preventif atau saat gejala pertama muncul, terutama saat cuaca hangat dan lembab."
+    ]
+  },
+  "Embun Bulu": {
+    "nama_ilmiah": "Peronospora manshurica",
+    "deskripsi": "Disebabkan oleh jamur, terlihat sebagai bercak kuning pucat di permukaan atas daun. Di bagian bawah daun, akan terlihat lapisan spora jamur berwarna abu-abu hingga ungu, terutama di pagi hari.",
+    "rekomendasi": [
+      "Gunakan varietas yang resisten.",
+      "Rotasi tanaman sangat penting untuk memutus siklus hidup jamur.",
+      "Beri jarak tanam yang cukup untuk sirkulasi udara yang baik agar daun cepat kering.",
+      "Aplikasi fungisida spesifik mungkin diperlukan jika serangan parah, terutama pada fase awal pertumbuhan."
+    ]
+  },
+  "Bercak Mata Kodok": {
+    "nama_ilmiah": "Cercospora sojina",
+    "deskripsi": "Disebabkan oleh jamur, gejala awal berupa bercak kecil basah yang berkembang menjadi bercak bulat dengan pusat abu-abu atau coklat muda dan tepi ungu atau coklat tua, mirip 'mata kodok'.",
+    "rekomendasi": [
+      "Metode paling efektif adalah menanam varietas yang tahan (resisten).",
+      "Rotasi tanaman dengan tanaman non-inang (seperti jagung atau gandum).",
+      "Bajak sisa tanaman ke dalam tanah setelah panen untuk mempercepat dekomposisi.",
+      "Aplikasi fungisida (Golongan Triazol atau Strobilurin) efektif jika diterapkan saat gejala awal muncul."
+    ]
+  },
+  "Sehat": {
+    "nama_ilmiah": "-",
+    "deskripsi": "Daun tidak menunjukkan gejala penyakit atau kekurangan nutrisi yang jelas.",
+    "rekomendasi": [
+      "Lanjutkan praktik agronomi yang baik (pemupukan berimbang, pengairan cukup).",
+      "Lakukan pemantauan (scouting) rutin untuk mendeteksi hama atau penyakit secara dini.",
+      "Jaga kebersihan lahan dari gulma yang bisa menjadi inang hama."
+    ]
+  },
+  "Kekurangan Kalium": {
+    "nama_ilmiah": "Defisiensi Nutrisi (K)",
+    "deskripsi": "Gejala terlihat di daun yang lebih tua terlebih dahulu. Tepi daun akan menguning (klorosis), kemudian menjadi coklat atau hangus seperti terbakar, sementara tulang daun tetap hijau.",
+    "rekomendasi": [
+      "Ini adalah masalah nutrisi, bukan infeksi.",
+      "Lakukan uji tanah untuk memastikan tingkat Kalium (K) dalam tanah.",
+      "Berikan pupuk yang mengandung Kalium, seperti KCL (MOP) atau pupuk majemuk NPK dengan kandungan K yang tinggi.",
+      "Pupuk bisa diberikan saat tanam atau sebagai pupuk susulan."
+    ]
+  },
+  "Karat Kedelai": {
+    "nama_ilmiah": "Phakopsora pachyrhizi",
+    "deskripsi": "Penyakit jamur yang sangat merusak. Gejala awal berupa bercak kecil berwarna coklat muda hingga merah bata di daun. Jika dibalik, akan terlihat bintil-bintil (pustul) yang mengeluarkan spora berwarna coklat seperti karat.",
+    "rekomendasi": [
+      "Segera lakukan aplikasi fungisida yang efektif (golongan Triazol atau Strobilurin) begitu gejala pertama terdeteksi. Penyakit ini menyebar sangat cepat.",
+      "Tanam varietas yang memiliki ketahanan terhadap karat.",
+      "Pantau laporan cuaca dan peringatan dini penyakit karat di wilayah Anda."
+    ]
+  },
+  "Bercak Target": {
+    "nama_ilmiah": "Corynespora cassiicola",
+    "deskripsi": "Disebabkan oleh jamur. Menghasilkan bercak bulat hingga tidak teratur, seringkali dengan pola 'target' atau cincin konsentris berwarna coklat muda dan tua. Ukurannya bisa bervariasi dari kecil hingga besar.",
+    "rekomendasi": [
+      "Lakukan rotasi tanaman dengan tanaman bukan inang (misal: jagung).",
+      "Pengolahan tanah dalam (deep tillage) dapat membantu mengubur sisa tanaman yang terinfeksi.",
+      "Gunakan varietas yang toleran jika tersedia.",
+      "Aplikasi fungisida mungkin diperlukan jika penyakit parah dan kondisi cuaca mendukung."
+    ]
+  }
+}
