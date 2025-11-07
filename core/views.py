@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Device, SensorReading
+from django.utils import timezone
+import json
 
 
 def dashboard(request):
@@ -11,12 +13,40 @@ def dashboard(request):
     """
     device = Device.objects.first()
     latest_reading = None
+    historical_data = []
+    
     if device:
         latest_reading = SensorReading.objects.filter(device=device).order_by('-timestamp').first()
+        
+        # Get last 20 readings for charts
+        readings = SensorReading.objects.filter(device=device).order_by('-timestamp')[:20]
+        
+        # Reverse to get chronological order
+        readings = reversed(readings)
+        
+        # Prepare data for charts
+        for reading in readings:
+            # Convert to Asia/Jakarta timezone
+            local_time = timezone.localtime(reading.timestamp)
+            
+            historical_data.append({
+                'timestamp': local_time.strftime('%H:%M:%S'),
+                'air_temperature': float(reading.air_temperature) if reading.air_temperature else 0,
+                'air_humidity': float(reading.air_humidity) if reading.air_humidity else 0,
+                'soil_moisture': float(reading.soil_moisture) if reading.soil_moisture else 0,
+                'soil_ph': float(reading.soil_ph) if reading.soil_ph else 7,
+                'wind_speed': float(reading.wind_speed) if reading.wind_speed else 0,
+                'wind_direction': reading.wind_direction if reading.wind_direction else 'N/A',
+                'rainfall': float(reading.rainfall) if reading.rainfall else 0,
+                'nitrogen': float(reading.nitrogen) if reading.nitrogen else 0,
+                'phosphorus': float(reading.phosphorus) if reading.phosphorus else 0,
+                'potassium': float(reading.potassium) if reading.potassium else 0,
+            })
 
     context = {
         'device': device,
         'reading': latest_reading,
+        'historical_data_json': json.dumps(historical_data),
         'active_page': 'dashboard',
     }
     return render(request, 'dashboard.html', context)

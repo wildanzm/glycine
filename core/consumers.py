@@ -3,6 +3,7 @@ from datetime import datetime
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from .models import Device, SensorReading
 
 
@@ -136,12 +137,15 @@ class DeviceConsumer(AsyncWebsocketConsumer):
     async def broadcast_to_dashboard(self, reading, sensor_data):
         """Broadcast sensor data to dashboard group"""
         try:
+            # Convert to local timezone (Asia/Jakarta)
+            local_time = timezone.localtime(reading.timestamp)
+            
             message_data = {
                 'type': 'sensor_update',
                 'device_uuid': self.device_uuid,
                 'device_name': self.device.name,
                 'reading_id': reading.id,
-                'timestamp': reading.timestamp.isoformat(),
+                'timestamp': local_time.strftime('%d/%m/%Y %H:%M:%S'),
                 'data': sensor_data
             }
             

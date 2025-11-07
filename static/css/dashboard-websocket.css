@@ -349,3 +349,269 @@
 		flex-direction: column;
 	}
 }
+
+/* Tab Styles */
+.tab-button {
+	background-color: #f3f4f6;
+	color: #6b7280;
+	border: none;
+	cursor: pointer;
+	user-select: none;
+}
+
+.tab-button:hover {
+	background-color: #e5e7eb;
+	color: #374151;
+}
+
+.tab-button.active {
+	background: linear-gradient(135deg, #059669 0%, #047857 100%);
+	color: white;
+	box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3), 0 2px 4px -1px rgba(5, 150, 105, 0.2);
+}
+
+.tab-button.active:hover {
+	background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+}
+
+/* Tab responsive - smaller padding on mobile */
+@media (max-width: 640px) {
+	.tab-button {
+		padding: 0.75rem 0.5rem !important;
+		font-size: 0.813rem;
+	}
+}
+
+.tab-content {
+	animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.tab-content.hidden {
+	display: none !important;
+}
+
+/* Dashboard Card Spacing */
+#content-dashboard,
+#content-statistics,
+#content-table {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+/* Ensure proper card heights */
+#content-dashboard .bg-white {
+	height: 100%;
+}
+
+/* Add breathing room to sensor cards */
+#content-dashboard .bg-gray-50 {
+	min-height: 110px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+	#content-dashboard .bg-gray-50 {
+		min-height: 100px;
+	}
+
+	/* Make charts larger and more readable on mobile */
+	#content-statistics canvas {
+		min-height: 300px !important;
+		height: 300px !important;
+	}
+
+	/* Give more space to chart containers on mobile */
+	#content-statistics .bg-white {
+		padding: 1rem !important;
+	}
+
+	/* Increase chart title font size on mobile */
+	#content-statistics h3 {
+		font-size: 1.125rem !important;
+		margin-bottom: 1rem !important;
+	}
+}
+
+/* Chart canvas responsive sizing */
+canvas {
+	max-width: 100%;
+	height: auto !important;
+}
+
+/* Better chart container sizing */
+#content-statistics .bg-white {
+	min-height: 350px;
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+	/* Tablet sizing */
+	#content-statistics canvas {
+		min-height: 280px !important;
+	}
+}
+
+@media (min-width: 1024px) {
+	/* Make cards in the same row have equal heights */
+	#content-dashboard > div[class*="grid"] {
+		align-items: stretch;
+	}
+
+	#content-dashboard .bg-white {
+		display: flex;
+		flex-direction: column;
+	}
+}
+
+/* Table Styles */
+#content-table table {
+	font-size: 0.875rem;
+	min-width: 100%;
+}
+
+#content-table table thead th {
+	position: sticky;
+	top: 0;
+	background-color: #f9fafb;
+	z-index: 10;
+	white-space: nowrap;
+}
+
+#content-table table tbody td {
+	white-space: nowrap;
+}
+
+#content-table table tbody tr {
+	transition: background-color 0.15s ease;
+}
+
+#content-table table tbody tr:nth-child(even) {
+	background-color: #fafafa;
+}
+
+#content-table table tbody tr:hover {
+	background-color: #f0fdf4;
+}
+
+/* Table Mobile Cards */
+.table-card-enter {
+	animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Mobile card styling */
+#table-body-mobile > div {
+	transition: background-color 0.2s ease;
+}
+
+#table-body-mobile > div:hover {
+	background-color: #f9fafb;
+}
+
+#table-body-mobile .bg-blue-50 {
+	background-color: #eff6ff;
+	border-left: 3px solid #3b82f6;
+}
+
+#table-body-mobile .bg-yellow-50 {
+	background-color: #fefce8;
+	border-left: 3px solid #eab308;
+}
+
+#table-body-mobile .bg-green-50 {
+	background-color: #f0fdf4;
+	border-left: 3px solid #22c55e;
+}
+
+/* Smooth scrolling for table */
+#content-table .overflow-x-auto {
+	scrollbar-width: thin;
+	scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+#content-table .overflow-x-auto::-webkit-scrollbar {
+	height: 8px;
+}
+
+#content-table .overflow-x-auto::-webkit-scrollbar-track {
+	background: #f7fafc;
+	border-radius: 4px;
+}
+
+#content-table .overflow-x-auto::-webkit-scrollbar-thumb {
+	background: #cbd5e0;
+	border-radius: 4px;
+}
+
+#content-table .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+	background: #a0aec0;
+}
+
+/* Refresh button animation */
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.animate-spin {
+	animation: spin 1s linear infinite;
+}
+
+/* Responsive table improvements */
+@media (max-width: 768px) {
+	/* Hide table completely on mobile */
+	#content-table .md\:block {
+		display: none !important;
+	}
+
+	/* Ensure mobile cards are visible */
+	#content-table .md\:hidden {
+		display: block !important;
+	}
+
+	#content-table .space-y-3 > div {
+		animation: slideInUp 0.2s ease-out;
+	}
+}
+
+@media (min-width: 769px) {
+	/* Hide mobile cards on desktop */
+	#content-table .md\:hidden {
+		display: none !important;
+	}
+
+	/* Ensure table is visible on desktop */
+	#content-table .md\:block {
+		display: block !important;
+	}
+}

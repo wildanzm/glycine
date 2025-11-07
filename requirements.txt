@@ -25,3 +25,4 @@ tzdata==2025.2
 zope.interface==7.2
 mysqlclient==2.2.4
 channels-redis==4.2.0
+websockets==15.0.0

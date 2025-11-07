@@ -1,126 +1,255 @@
-{% extends "base.html" %} {% block title %}SoySmart 360 | Dashboard{% endblock %} {% block content %}
+{% extends "base.html" %} {% load static %} {% block title %}SoySmart 360 | Dashboard{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard-websocket.css' %}" />
+{% endblock %} {% block content %}
 <div id="dashboard-container" class="space-y-6">
 	{% if device %}
 	<div class="bg-white p-6 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4">
 		<div>
 			<h2 id="device-name" class="text-3xl font-bold text-gray-800">{{ device.name }}</h2>
-			<p class="text-gray-500 mt-1">Mac Address: <span class="font-mono text-sm">{{ device.device_uuid }}</span>
-			</p>
+			<p class="text-gray-500 mt-1">Mac Address: <span class="font-mono text-sm">{{ device.device_uuid }}</span></p>
 		</div>
 		<div class="flex items-center gap-6">
 			<div class="text-right">
 				<span class="text-sm font-medium text-gray-500">Status</span>
-				<p id="device-status-text"
-					class="text-lg font-bold flex items-center {% if device.status == 'online' %} text-green-600 {% else %} text-red-600 {% endif %}">
-					<span id="device-status-icon" class="material-icons text-base mr-1">
-						{% if device.status == 'online' %} signal_cellular_alt {% else %} signal_cellular_off
-						{% endif %} </span>
+				<p id="device-status-text" class="text-lg font-bold flex items-center {% if device.status == 'online' %} text-green-600 {% else %} text-red-600 {% endif %}">
+					<span id="device-status-icon" class="material-icons text-base mr-1"> {% if device.status == 'online' %} signal_cellular_alt {% else %} signal_cellular_off {% endif %} </span>
 					<span id="device-status-label">{{ device.status|title }}</span>
 				</p>
 			</div>
 		</div>
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-		<div class="bg-white p-6 rounded-2xl shadow-md">
-			<h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">Kondisi Cuaca</h3>
-			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<span class="material-icons text-3xl text-red-500">thermostat</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_temperature" data-decimal="1"
-						data-unit="°C">{{ reading.air_temperature|floatformat:1|default:"--" }}°C</p>
-					<p class="text-sm text-gray-500">Suhu Udara</p>
+	<!-- Tab Navigation -->
+	<div class="bg-white p-2 rounded-2xl shadow-md">
+		<div class="grid grid-cols-3 gap-2">
+			<button id="tab-dashboard" class="tab-button active px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2">
+				<span class="material-icons text-lg hidden sm:inline">dashboard</span>
+				<span>Dashboard</span>
+			</button>
+			<button id="tab-statistics" class="tab-button px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2">
+				<span class="material-icons text-lg hidden sm:inline">analytics</span>
+				<span>Statistik</span>
+			</button>
+			<button id="tab-table" class="tab-button px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2">
+				<span class="material-icons text-lg hidden sm:inline">table_chart</span>
+				<span>Tabel</span>
+			</button>
+		</div>
+	</div>
+
+	<!-- Tab Content Dashboard -->
+	<div id="content-dashboard" class="tab-content space-y-6">
+		<!-- Row 1: Kondisi Cuaca dan Kondisi Tanah -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Kondisi Cuaca</h3>
+				<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<span class="material-icons text-3xl text-red-500">thermostat</span>
+						<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_temperature" data-decimal="1" data-unit="°C">{{ reading.air_temperature|floatformat:1|default:"--" }}°C</p>
+						<p class="text-sm text-gray-500">Suhu Udara</p>
+					</div>
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<span class="material-icons text-3xl text-blue-500">water_drop</span>
+						<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_humidity" data-decimal="0" data-unit="%">{{ reading.air_humidity|floatformat:0|default:"--" }}%</p>
+						<p class="text-sm text-gray-500">Kelembapan Udara</p>
+					</div>
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<span class="material-icons text-3xl text-cyan-500">water</span>
+						<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="rainfall" data-decimal="1" data-unit=" mm">{{ reading.rainfall|floatformat:1|default:"--" }} mm</p>
+						<p class="text-sm text-gray-500">Curah Hujan</p>
+					</div>
 				</div>
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<span class="material-icons text-3xl text-blue-500">water_drop</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="air_humidity" data-decimal="0"
-						data-unit="%">
-						{{ reading.air_humidity|floatformat:0|default:"--" }}%</p>
-					<p class="text-sm text-gray-500">Kelembapan Udara</p>
-				</div>
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<span class="material-icons text-3xl text-cyan-500">water</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="rainfall" data-decimal="1"
-						data-unit=" mm">
-						{{ reading.rainfall|floatformat:1|default:"--" }} mm</p>
-					<p class="text-sm text-gray-500">Curah Hujan</p>
+			</div>
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Kondisi Tanah</h3>
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<span class="material-icons text-3xl text-yellow-700">water_damage</span>
+						<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_moisture" data-decimal="0" data-unit="%">{{ reading.soil_moisture|floatformat:0|default:"--" }}%</p>
+						<p class="text-sm text-gray-500">Kelembapan Tanah</p>
+					</div>
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<span class="material-icons text-3xl text-purple-500">science</span>
+						<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_ph" data-decimal="1" data-unit="">{{ reading.soil_ph|floatformat:1|default:"--" }}</p>
+						<p class="text-sm text-gray-500">pH Tanah</p>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="bg-white p-6 rounded-2xl shadow-md">
-			<h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">Kondisi Tanah</h3>
-			<div class="grid grid-cols-2 gap-4">
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<span class="material-icons text-3xl text-yellow-700">water_damage</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_moisture" data-decimal="0"
-						data-unit="%">{{ reading.soil_moisture|floatformat:0|default:"--" }}%</p>
-					<p class="text-sm text-gray-500">Kelembapan Tanah</p>
+
+		<!-- Row 2: Kondisi Angin dan Nutrisi Tanah -->
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Kondisi Angin</h3>
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<span class="material-icons text-3xl text-gray-500">air</span>
+						<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_speed" data-decimal="1" data-unit=" km/h">{{ reading.wind_speed|floatformat:1|default:"--" }} km/h</p>
+						<p class="text-sm text-gray-500">Kecepatan</p>
+					</div>
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<span class="material-icons text-3xl text-gray-500">explore</span>
+						<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_direction" data-unit="">{{ reading.wind_direction|default:"--" }}</p>
+						<p class="text-sm text-gray-500">Arah Angin</p>
+					</div>
 				</div>
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<span class="material-icons text-3xl text-purple-500">science</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="soil_ph" data-decimal="1"
-						data-unit="">{{ reading.soil_ph|floatformat:1|default:"--" }}</p>
-					<p class="text-sm text-gray-500">pH Tanah</p>
+			</div>
+			<div class="bg-white p-6 rounded-2xl shadow-md lg:col-span-2">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Nutrisi Tanah</h3>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<div class="relative w-20 h-20 mx-auto bg-white border-2 border-green-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+							<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">7</span><span class="text-4xl font-bold text-green-700">N</span><span class="text-xs font-semibold">Nitrogen</span>
+						</div>
+						<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="nitrogen" data-decimal="0" data-unit=" mg/kg">{{ reading.nitrogen|floatformat:0|default:"--" }} mg/kg</p>
+					</div>
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<div class="relative w-20 h-20 mx-auto bg-white border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+							<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">15</span><span class="text-4xl font-bold text-orange-700">P</span><span class="text-xs font-semibold">Phosphorus</span>
+						</div>
+						<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="phosphorus" data-decimal="0" data-unit=" mg/kg">{{ reading.phosphorus|floatformat:0|default:"--" }} mg/kg</p>
+					</div>
+					<div class="bg-gray-50 p-4 rounded-xl text-center">
+						<div class="relative w-20 h-20 mx-auto bg-white border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
+							<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">19</span><span class="text-4xl font-bold text-blue-700">K</span><span class="text-xs font-semibold">Potassium</span>
+						</div>
+						<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="potassium" data-decimal="0" data-unit=" mg/kg">{{ reading.potassium|floatformat:0|default:"--" }} mg/kg</p>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-		<div class="bg-white p-6 rounded-2xl shadow-md">
-			<h3 class="text-lg font-semibold text-gray-700 mb-4">Kondisi Angin</h3>
-			<div class="grid grid-cols-2 gap-4">
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<span class="material-icons text-3xl text-gray-500">air</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_speed" data-decimal="1"
-						data-unit=" km/h">{{ reading.wind_speed|floatformat:1|default:"--" }} km/h</p>
-					<p class="text-sm text-gray-500">Kecepatan</p>
-				</div>
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<span class="material-icons text-3xl text-gray-500">explore</span>
-					<p class="mt-2 text-2xl font-bold text-gray-800" data-sensor="wind_direction" data-unit="">
-						{{ reading.wind_direction|default:"--" }}</p>
-					<p class="text-sm text-gray-500">Arah Angin</p>
-				</div>
+	<!-- Tab Content Statistics -->
+	<div id="content-statistics" class="tab-content hidden space-y-6">
+		<!-- Row 1: Suhu Udara dan Kelembapan -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Suhu Udara</h3>
+				<canvas id="chartTemperature"></canvas>
+			</div>
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Kelembapan</h3>
+				<canvas id="chartHumidity"></canvas>
 			</div>
 		</div>
-		<div class="bg-white p-6 rounded-2xl shadow-md lg:col-span-2">
-			<h3 class="text-lg font-semibold text-gray-700 mb-4">Nutrisi Tanah</h3>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<div
-						class="relative w-20 h-20 mx-auto bg-white border-2 border-green-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">7</span><span
-							class="text-4xl font-bold text-green-700">N</span><span
-							class="text-xs font-semibold">Nitrogen</span>
-					</div>
-					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="nitrogen" data-decimal="0"
-						data-unit=" mg/kg">{{ reading.nitrogen|floatformat:0|default:"--" }} mg/kg</p>
+
+		<!-- Row 2: Curah Hujan dan pH Tanah -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Curah Hujan</h3>
+				<canvas id="chartRainfall"></canvas>
+			</div>
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">pH Tanah</h3>
+				<canvas id="chartSoilPH"></canvas>
+			</div>
+		</div>
+
+		<!-- Row 3: Kecepatan Angin dan Nutrisi Tanah -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Kecepatan Angin</h3>
+				<canvas id="chartWindSpeed"></canvas>
+			</div>
+			<div class="bg-white p-6 rounded-2xl shadow-md">
+				<h3 class="text-lg font-semibold text-gray-700 mb-4">Nutrisi Tanah</h3>
+				<canvas id="chartNutrients"></canvas>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tab Content Table -->
+	<div id="content-table" class="tab-content hidden space-y-6">
+		<div class="bg-white rounded-2xl shadow-md overflow-hidden">
+			<!-- Table Header -->
+			<div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+				<div>
+					<h3 class="text-xl font-semibold text-gray-800">Riwayat Data Sensor</h3>
+					<p class="text-sm text-gray-500 mt-1">Data pembacaan sensor terbaru</p>
 				</div>
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<div
-						class="relative w-20 h-20 mx-auto bg-white border-2 border-orange-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">15</span><span
-							class="text-4xl font-bold text-orange-700">P</span><span
-							class="text-xs font-semibold">Phosphorus</span>
+				<div class="flex gap-2 w-full sm:w-auto">
+					<div class="relative flex-1 sm:flex-initial">
+						<input
+							type="text"
+							id="search-table"
+							placeholder="Cari data..."
+							class="w-full sm:w-48 px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+						<span class="material-icons absolute right-3 top-2 text-gray-400 text-xl pointer-events-none">search</span>
 					</div>
-					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="phosphorus" data-decimal="0"
-						data-unit=" mg/kg">{{ reading.phosphorus|floatformat:0|default:"--" }} mg/kg</p>
+					<button id="refresh-table" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm">
+						<span class="material-icons text-lg">refresh</span>
+						<span class="hidden sm:inline">Refresh</span>
+					</button>
+					<button id="export-table" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm">
+						<span class="material-icons text-lg">table_chart</span>
+						<span class="hidden sm:inline">Export Excel</span>
+					</button>
 				</div>
-				<div class="bg-gray-50 p-4 rounded-xl text-center">
-					<div
-						class="relative w-20 h-20 mx-auto bg-white border-2 border-blue-200 rounded-lg flex flex-col items-center justify-center shadow-inner">
-						<span class="absolute top-1 left-2 text-xs font-bold text-gray-500">19</span><span
-							class="text-4xl font-bold text-blue-700">K</span><span
-							class="text-xs font-semibold">Potassium</span>
-					</div>
-					<p class="mt-3 text-2xl font-bold text-gray-800" data-sensor="potassium" data-decimal="0"
-						data-unit=" mg/kg">{{ reading.potassium|floatformat:0|default:"--" }} mg/kg</p>
+			</div>
+
+			<!-- Desktop Table View -->
+			<div class="hidden md:block overflow-x-auto">
+				<table class="w-full">
+					<thead class="bg-gray-50 border-b border-gray-200">
+						<tr>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">No</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Suhu Udara</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Kelembapan Udara</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Curah Hujan</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Kelembapan Tanah</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">pH Tanah</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Kecepatan Angin</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Arah Angin</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Nitrogen</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Fosfor</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Kalium</th>
+							<th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Waktu</th>
+						</tr>
+					</thead>
+					<tbody id="table-body-desktop" class="bg-white divide-y divide-gray-200">
+						<!-- Data will be inserted here by JavaScript -->
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Mobile Card View -->
+			<div class="md:hidden" id="table-body-mobile">
+				<!-- Cards will be inserted here by JavaScript -->
+			</div>
+
+			<!-- Loading State -->
+			<div id="table-loading" class="hidden px-6 py-12 text-center">
+				<div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-green-600"></div>
+				<p class="mt-4 text-gray-600">Memuat data...</p>
+			</div>
+
+			<!-- Empty State -->
+			<div id="table-empty" class="hidden px-6 py-12 text-center">
+				<span class="material-icons text-6xl text-gray-300 mb-4">inbox</span>
+				<h4 class="text-lg font-semibold text-gray-600 mb-2">Tidak Ada Data</h4>
+				<p class="text-gray-500">Belum ada data sensor yang tercatat.</p>
+			</div>
+
+			<!-- Pagination -->
+			<div class="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+				<div class="text-sm text-gray-600">Menampilkan <span id="showing-start">1</span> - <span id="showing-end">20</span> dari <span id="total-records">0</span> data</div>
+				<div class="flex gap-2">
+					<button id="prev-page" class="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+						<span class="material-icons text-sm">chevron_left</span>
+					</button>
+					<span id="page-info" class="px-4 py-1 text-sm text-gray-600">Halaman 1</span>
+					<button id="next-page" class="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+						<span class="material-icons text-sm">chevron_right</span>
+					</button>
 				</div>
 			</div>
 		</div>
 	</div>
+
 	{% else %}
+	<!-- No Device Message -->
 	<div class="bg-white p-8 rounded-2xl shadow-md text-center">
 		<span class="material-icons text-6xl text-gray-300 mb-4">developer_board_off</span>
 		<h3 class="text-xl font-semibold text-gray-600 mb-2">Tidak Ada Perangkat Terdaftar</h3>
@@ -131,6 +260,502 @@
 {% endblock %} {% block extra_js %}
 <script>
 	document.addEventListener("DOMContentLoaded", function () {
+		// --- Initialize Charts ---
+		const maxDataPoints = 20; // Maximum number of data points to show
+
+		// Helper function to get responsive aspect ratio
+		function getResponsiveAspectRatio() {
+			if (window.innerWidth < 640) {
+				return 1.2; // Mobile: taller charts for better readability
+			} else if (window.innerWidth < 1024) {
+				return 1.5; // Tablet: medium height
+			} else {
+				return 2; // Desktop: wider charts
+			}
+		}
+
+		const chartColors = {
+			red: 'rgb(239, 68, 68)',
+			blue: 'rgb(59, 130, 246)',
+			cyan: 'rgb(6, 182, 212)',
+			yellow: 'rgb(161, 98, 7)',
+			purple: 'rgb(168, 85, 247)',
+			gray: 'rgb(107, 114, 128)',
+			green: 'rgb(34, 197, 94)',
+			orange: 'rgb(249, 115, 22)',
+		};
+
+		// Load historical data from database
+		const historicalData = {{ historical_data_json|safe }};
+
+		// Initialize time labels and data arrays from historical data
+		const timeLabels = [];
+		const tempData = [];
+		const airHumidityData = [];
+		const soilMoistureData = [];
+		const rainfallData = [];
+		const soilPhData = [];
+		const windSpeedData = [];
+		const nitrogenData = [];
+		const phosphorusData = [];
+		const potassiumData = [];
+
+		// Populate arrays with historical data
+		historicalData.forEach(reading => {
+			timeLabels.push(reading.timestamp);
+			tempData.push(reading.air_temperature);
+			airHumidityData.push(reading.air_humidity);
+			soilMoistureData.push(reading.soil_moisture);
+			rainfallData.push(reading.rainfall);
+			soilPhData.push(reading.soil_ph);
+			windSpeedData.push(reading.wind_speed);
+			nitrogenData.push(reading.nitrogen);
+			phosphorusData.push(reading.phosphorus);
+			potassiumData.push(reading.potassium);
+		});
+
+		// Chart configuration helper
+		function createChartConfig(label, borderColor, backgroundColor, initialData = []) {
+			return {
+				label: label,
+				data: initialData,
+				borderColor: borderColor,
+				backgroundColor: backgroundColor,
+				borderWidth: 2,
+				tension: 0.4,
+				fill: false,
+				pointRadius: 3,
+				pointHoverRadius: 5,
+			};
+		}
+
+		// Chart 1: Suhu Udara
+		const ctxTemperature = document.getElementById('chartTemperature');
+		const chartTemperature = new Chart(ctxTemperature, {
+			type: 'line',
+			data: {
+				labels: timeLabels,
+				datasets: [createChartConfig('Suhu Udara (°C)', chartColors.red, 'rgba(239, 68, 68, 0.1)', tempData)]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				aspectRatio: getResponsiveAspectRatio(),
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top',
+						labels: {
+							font: { size: window.innerWidth < 640 ? 11 : 12 },
+							padding: window.innerWidth < 640 ? 8 : 10
+						}
+					},
+					title: { display: false }
+				},
+				scales: {
+					y: {
+						beginAtZero: false,
+						title: {
+							display: true,
+							text: 'Suhu (°C)',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							font: { size: window.innerWidth < 640 ? 10 : 11 }
+						}
+					},
+					x: {
+						title: {
+							display: true,
+							text: 'Waktu',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							maxRotation: 45,
+							minRotation: 45,
+							font: { size: window.innerWidth < 640 ? 9 : 10 }
+						}
+					}
+				}
+			}
+		});
+
+		// Chart 2: Kelembapan (Tanah dan Udara)
+		const ctxHumidity = document.getElementById('chartHumidity');
+		const chartHumidity = new Chart(ctxHumidity, {
+			type: 'line',
+			data: {
+				labels: timeLabels,
+				datasets: [
+					createChartConfig('Kelembapan Udara (%)', chartColors.blue, 'rgba(59, 130, 246, 0.1)', airHumidityData),
+					createChartConfig('Kelembapan Tanah (%)', chartColors.yellow, 'rgba(161, 98, 7, 0.1)', soilMoistureData)
+				]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				aspectRatio: getResponsiveAspectRatio(),
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top',
+						labels: {
+							font: { size: window.innerWidth < 640 ? 11 : 12 },
+							padding: window.innerWidth < 640 ? 8 : 10
+						}
+					},
+					title: { display: false }
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						max: 100,
+						title: {
+							display: true,
+							text: 'Kelembapan (%)',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							font: { size: window.innerWidth < 640 ? 10 : 11 }
+						}
+					},
+					x: {
+						title: {
+							display: true,
+							text: 'Waktu',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							maxRotation: 45,
+							minRotation: 45,
+							font: { size: window.innerWidth < 640 ? 9 : 10 }
+						}
+					}
+				}
+			}
+		});
+
+		// Chart 3: Curah Hujan
+		const ctxRainfall = document.getElementById('chartRainfall');
+		const chartRainfall = new Chart(ctxRainfall, {
+			type: 'line',
+			data: {
+				labels: timeLabels,
+				datasets: [createChartConfig('Curah Hujan (mm)', chartColors.cyan, 'rgba(6, 182, 212, 0.1)', rainfallData)]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				aspectRatio: getResponsiveAspectRatio(),
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top',
+						labels: {
+							font: { size: window.innerWidth < 640 ? 11 : 12 },
+							padding: window.innerWidth < 640 ? 8 : 10
+						}
+					},
+					title: { display: false }
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						title: {
+							display: true,
+							text: 'Curah Hujan (mm)',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							font: { size: window.innerWidth < 640 ? 10 : 11 }
+						}
+					},
+					x: {
+						title: {
+							display: true,
+							text: 'Waktu',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							maxRotation: 45,
+							minRotation: 45,
+							font: { size: window.innerWidth < 640 ? 9 : 10 }
+						}
+					}
+				}
+			}
+		});
+
+		// Chart 4: pH Tanah
+		const ctxSoilPH = document.getElementById('chartSoilPH');
+		const chartSoilPH = new Chart(ctxSoilPH, {
+			type: 'line',
+			data: {
+				labels: timeLabels,
+				datasets: [createChartConfig('pH Tanah', chartColors.purple, 'rgba(168, 85, 247, 0.1)', soilPhData)]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				aspectRatio: getResponsiveAspectRatio(),
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top',
+						labels: {
+							font: { size: window.innerWidth < 640 ? 11 : 12 },
+							padding: window.innerWidth < 640 ? 8 : 10
+						}
+					},
+					title: { display: false }
+				},
+				scales: {
+					y: {
+						beginAtZero: false,
+						min: 0,
+						max: 14,
+						title: {
+							display: true,
+							text: 'pH',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							font: { size: window.innerWidth < 640 ? 10 : 11 }
+						}
+					},
+					x: {
+						title: {
+							display: true,
+							text: 'Waktu',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							maxRotation: 45,
+							minRotation: 45,
+							font: { size: window.innerWidth < 640 ? 9 : 10 }
+						}
+					}
+				}
+			}
+		});
+
+		// Chart 5: Kecepatan Angin
+		const ctxWindSpeed = document.getElementById('chartWindSpeed');
+		const chartWindSpeed = new Chart(ctxWindSpeed, {
+			type: 'line',
+			data: {
+				labels: timeLabels,
+				datasets: [createChartConfig('Kecepatan Angin (km/h)', chartColors.gray, 'rgba(107, 114, 128, 0.1)', windSpeedData)]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				aspectRatio: getResponsiveAspectRatio(),
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top',
+						labels: {
+							font: { size: window.innerWidth < 640 ? 11 : 12 },
+							padding: window.innerWidth < 640 ? 8 : 10
+						}
+					},
+					title: { display: false }
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						title: {
+							display: true,
+							text: 'Kecepatan (km/h)',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							font: { size: window.innerWidth < 640 ? 10 : 11 }
+						}
+					},
+					x: {
+						title: {
+							display: true,
+							text: 'Waktu',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							maxRotation: 45,
+							minRotation: 45,
+							font: { size: window.innerWidth < 640 ? 9 : 10 }
+						}
+					}
+				}
+			}
+		});
+
+		// Chart 6: Nutrisi Tanah (N, P, K)
+		const ctxNutrients = document.getElementById('chartNutrients');
+		const chartNutrients = new Chart(ctxNutrients, {
+			type: 'line',
+			data: {
+				labels: timeLabels,
+				datasets: [
+					createChartConfig('Nitrogen (mg/kg)', chartColors.green, 'rgba(34, 197, 94, 0.1)', nitrogenData),
+					createChartConfig('Phosphorus (mg/kg)', chartColors.orange, 'rgba(249, 115, 22, 0.1)', phosphorusData),
+					createChartConfig('Potassium (mg/kg)', chartColors.blue, 'rgba(59, 130, 246, 0.1)', potassiumData)
+				]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: true,
+				aspectRatio: getResponsiveAspectRatio(),
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top',
+						labels: {
+							font: { size: window.innerWidth < 640 ? 10 : 12 },
+							padding: window.innerWidth < 640 ? 6 : 10,
+							boxWidth: window.innerWidth < 640 ? 30 : 40
+						}
+					},
+					title: { display: false }
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						title: {
+							display: true,
+							text: 'Konsentrasi (mg/kg)',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							font: { size: window.innerWidth < 640 ? 10 : 11 }
+						}
+					},
+					x: {
+						title: {
+							display: true,
+							text: 'Waktu',
+							font: { size: window.innerWidth < 640 ? 11 : 12 }
+						},
+						ticks: {
+							maxRotation: 45,
+							minRotation: 45,
+							font: { size: window.innerWidth < 640 ? 9 : 10 }
+						}
+					}
+				}
+			}
+		});
+
+		// Handle window resize to update chart aspect ratio
+		let resizeTimer;
+		window.addEventListener('resize', function() {
+			clearTimeout(resizeTimer);
+			resizeTimer = setTimeout(function() {
+				const newAspectRatio = getResponsiveAspectRatio();
+				[chartTemperature, chartHumidity, chartRainfall, chartSoilPH, chartWindSpeed, chartNutrients].forEach(chart => {
+					if (chart && chart.options) {
+						chart.options.aspectRatio = newAspectRatio;
+						chart.update('none'); // Update without animation for resize
+					}
+				});
+			}, 250); // Debounce resize events
+		});
+
+		// Function to update all charts with new data
+		function updateCharts(data) {
+			// Use timestamp from data if available, otherwise create new one in WIB
+			const currentTime = data.timestamp || new Date().toLocaleTimeString('id-ID', {
+				timeZone: 'Asia/Jakarta',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+
+			// Add new time label
+			timeLabels.push(currentTime);
+			if (timeLabels.length > maxDataPoints) {
+				timeLabels.shift();
+			}
+
+			// Update Chart 1: Temperature
+			chartTemperature.data.datasets[0].data.push(data.air_temperature || 0);
+			if (chartTemperature.data.datasets[0].data.length > maxDataPoints) {
+				chartTemperature.data.datasets[0].data.shift();
+			}
+			chartTemperature.update('none');
+
+			// Update Chart 2: Humidity
+			chartHumidity.data.datasets[0].data.push(data.air_humidity || 0);
+			chartHumidity.data.datasets[1].data.push(data.soil_moisture || 0);
+			if (chartHumidity.data.datasets[0].data.length > maxDataPoints) {
+				chartHumidity.data.datasets[0].data.shift();
+				chartHumidity.data.datasets[1].data.shift();
+			}
+			chartHumidity.update('none');
+
+			// Update Chart 3: Rainfall
+			chartRainfall.data.datasets[0].data.push(data.rainfall || 0);
+			if (chartRainfall.data.datasets[0].data.length > maxDataPoints) {
+				chartRainfall.data.datasets[0].data.shift();
+			}
+			chartRainfall.update('none');
+
+			// Update Chart 4: Soil pH
+			chartSoilPH.data.datasets[0].data.push(data.soil_ph || 7);
+			if (chartSoilPH.data.datasets[0].data.length > maxDataPoints) {
+				chartSoilPH.data.datasets[0].data.shift();
+			}
+			chartSoilPH.update('none');
+
+			// Update Chart 5: Wind Speed
+			chartWindSpeed.data.datasets[0].data.push(data.wind_speed || 0);
+			if (chartWindSpeed.data.datasets[0].data.length > maxDataPoints) {
+				chartWindSpeed.data.datasets[0].data.shift();
+			}
+			chartWindSpeed.update('none');
+
+			// Update Chart 6: Nutrients
+			chartNutrients.data.datasets[0].data.push(data.nitrogen || 0);
+			chartNutrients.data.datasets[1].data.push(data.phosphorus || 0);
+			chartNutrients.data.datasets[2].data.push(data.potassium || 0);
+			if (chartNutrients.data.datasets[0].data.length > maxDataPoints) {
+				chartNutrients.data.datasets[0].data.shift();
+				chartNutrients.data.datasets[1].data.shift();
+				chartNutrients.data.datasets[2].data.shift();
+			}
+			chartNutrients.update('none');
+		}
+
+		// --- Tab Switching Logic ---
+		const tabButtons = document.querySelectorAll(".tab-button");
+		const tabContents = document.querySelectorAll(".tab-content");
+
+		tabButtons.forEach((button) => {
+			button.addEventListener("click", function () {
+				const tabId = this.id.replace("tab-", "");
+
+				// Remove active class from all buttons
+				tabButtons.forEach((btn) => btn.classList.remove("active"));
+
+				// Hide all tab contents
+				tabContents.forEach((content) => content.classList.add("hidden"));
+
+				// Add active class to clicked button
+				this.classList.add("active");
+
+				// Show corresponding content
+				const contentToShow = document.getElementById("content-" + tabId);
+				if (contentToShow) {
+					contentToShow.classList.remove("hidden");
+
+					// If table tab is opened, ensure it's rendered
+					if (tabId === 'table' && tableData.length > 0) {
+						renderTable();
+						updatePaginationInfo();
+					}
+				}
+			});
+		});
+
 		// Fungsi animasi counter yang lebih smooth
 		function animateValue(element, start, end, duration) {
 			if (!element) return;
@@ -176,7 +801,375 @@
 					}
 				}
 			});
+
+			// Update charts with new data
+			updateCharts(data);
+
+			// Add new row to table
+			addTableRow(data);
 		}
+
+		// --- Table Management ---
+		let currentPage = 1;
+		let itemsPerPage = 20;
+		let tableData = [];
+		let filteredData = [];
+		let searchQuery = '';
+
+		// Initialize table with historical data
+		function initializeTable() {
+			// Convert historical data to table format with additional info
+			tableData = historicalData.map((reading, index) => ({
+				...reading,
+				id: index + 1,
+				wind_direction: reading.wind_direction || 'N/A'
+			})).reverse(); // Most recent first
+
+			filteredData = [...tableData];
+			renderTable();
+			updatePaginationInfo();
+		}
+
+		// Filter table data based on search query
+		function filterTable(query) {
+			searchQuery = query.toLowerCase();
+
+			if (!searchQuery) {
+				filteredData = [...tableData];
+			} else {
+				filteredData = tableData.filter(row => {
+					return (
+						row.timestamp.toLowerCase().includes(searchQuery) ||
+						row.air_temperature.toString().includes(searchQuery) ||
+						row.air_humidity.toString().includes(searchQuery) ||
+						row.rainfall.toString().includes(searchQuery) ||
+						row.soil_moisture.toString().includes(searchQuery) ||
+						row.soil_ph.toString().includes(searchQuery) ||
+						row.wind_speed.toString().includes(searchQuery) ||
+						row.wind_direction.toLowerCase().includes(searchQuery) ||
+						row.nitrogen.toString().includes(searchQuery) ||
+						row.phosphorus.toString().includes(searchQuery) ||
+						row.potassium.toString().includes(searchQuery)
+					);
+				});
+			}
+
+			currentPage = 1; // Reset to first page
+			renderTable();
+			updatePaginationInfo();
+		}
+
+		// Render table based on current page
+		function renderTable() {
+			const start = (currentPage - 1) * itemsPerPage;
+			const end = start + itemsPerPage;
+			const pageData = filteredData.slice(start, end);
+
+			if (pageData.length === 0) {
+				showEmptyState();
+				return;
+			}
+
+			hideEmptyState();
+
+			// Render desktop table
+			const desktopBody = document.getElementById('table-body-desktop');
+			desktopBody.innerHTML = pageData.map((row, index) => `
+				<tr class="hover:bg-gray-50 transition-colors">
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${start + index + 1}</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.air_temperature, 1)}°C</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.air_humidity, 0)}%</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.rainfall, 2)} mm</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.soil_moisture, 0)}%</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.soil_ph, 1)}</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.wind_speed, 1)} km/h</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${row.wind_direction}</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.nitrogen, 0)} mg/kg</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.phosphorus, 0)} mg/kg</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-900">${formatValue(row.potassium, 0)} mg/kg</td>
+					<td class="px-4 py-3 text-sm text-center text-gray-600 whitespace-nowrap">${row.timestamp}</td>
+				</tr>
+			`).join('');
+
+			// Render mobile cards
+			const mobileBody = document.getElementById('table-body-mobile');
+			mobileBody.innerHTML = pageData.map((row, index) => `
+				<div class="border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors">
+					<div class="px-4 py-4 space-y-3">
+						<!-- Header -->
+						<div class="flex justify-between items-center pb-2 border-b border-gray-100">
+							<span class="text-sm font-semibold text-gray-900">#${start + index + 1}</span>
+							<span class="text-xs text-gray-500 flex items-center gap-1">
+								<span class="material-icons text-xs">schedule</span>
+								${row.timestamp}
+							</span>
+						</div>
+
+						<!-- Kondisi Cuaca -->
+						<div class="bg-blue-50 rounded-lg p-3 shadow-sm">
+							<h4 class="text-xs font-semibold text-blue-900 mb-2 flex items-center gap-1">
+								<span class="material-icons text-sm">cloud</span>
+								Kondisi Cuaca
+							</h4>
+							<div class="grid grid-cols-2 gap-2 text-xs">
+								<div>
+									<span class="text-gray-600">Suhu Udara:</span>
+									<span class="font-medium text-gray-900 ml-1 block mt-0.5">${formatValue(row.air_temperature, 1)}°C</span>
+								</div>
+								<div>
+									<span class="text-gray-600">Kelembapan:</span>
+									<span class="font-medium text-gray-900 ml-1 block mt-0.5">${formatValue(row.air_humidity, 0)}%</span>
+								</div>
+								<div>
+									<span class="text-gray-600">Curah Hujan:</span>
+									<span class="font-medium text-gray-900 ml-1 block mt-0.5">${formatValue(row.rainfall, 2)} mm</span>
+								</div>
+								<div>
+									<span class="text-gray-600">Kecepatan Angin:</span>
+									<span class="font-medium text-gray-900 ml-1 block mt-0.5">${formatValue(row.wind_speed, 1)} km/h</span>
+								</div>
+								<div class="col-span-2">
+									<span class="text-gray-600">Arah Angin:</span>
+									<span class="font-medium text-gray-900 ml-1">${row.wind_direction}</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Kondisi Tanah -->
+						<div class="bg-yellow-50 rounded-lg p-3 shadow-sm">
+							<h4 class="text-xs font-semibold text-yellow-900 mb-2 flex items-center gap-1">
+								<span class="material-icons text-sm">grass</span>
+								Kondisi Tanah
+							</h4>
+							<div class="grid grid-cols-2 gap-2 text-xs">
+								<div>
+									<span class="text-gray-600">Kelembapan:</span>
+									<span class="font-medium text-gray-900 ml-1 block mt-0.5">${formatValue(row.soil_moisture, 0)}%</span>
+								</div>
+								<div>
+									<span class="text-gray-600">pH Tanah:</span>
+									<span class="font-medium text-gray-900 ml-1 block mt-0.5">${formatValue(row.soil_ph, 1)}</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Nutrisi Tanah -->
+						<div class="bg-green-50 rounded-lg p-3 shadow-sm">
+							<h4 class="text-xs font-semibold text-green-900 mb-2 flex items-center gap-1">
+								<span class="material-icons text-sm">science</span>
+								Nutrisi Tanah
+							</h4>
+							<div class="grid grid-cols-3 gap-2 text-xs">
+								<div class="text-center">
+									<span class="text-gray-600 block">Nitrogen</span>
+									<span class="font-medium text-gray-900 block mt-0.5">${formatValue(row.nitrogen, 0)} mg/kg</span>
+								</div>
+								<div class="text-center">
+									<span class="text-gray-600 block">Fosfor</span>
+									<span class="font-medium text-gray-900 block mt-0.5">${formatValue(row.phosphorus, 0)} mg/kg</span>
+								</div>
+								<div class="text-center">
+									<span class="text-gray-600 block">Kalium</span>
+									<span class="font-medium text-gray-900 block mt-0.5">${formatValue(row.potassium, 0)} mg/kg</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			`).join('');
+		}
+
+		// Format value helper
+		function formatValue(value, decimals) {
+			if (value === null || value === undefined) return '--';
+			return parseFloat(value).toFixed(decimals);
+		}
+
+		// Update pagination info
+		function updatePaginationInfo() {
+			const totalRecords = filteredData.length;
+			const totalPages = Math.ceil(totalRecords / itemsPerPage);
+			const start = Math.min((currentPage - 1) * itemsPerPage + 1, totalRecords);
+			const end = Math.min(currentPage * itemsPerPage, totalRecords);
+
+			document.getElementById('showing-start').textContent = totalRecords > 0 ? start : 0;
+			document.getElementById('showing-end').textContent = end;
+			document.getElementById('total-records').textContent = totalRecords;
+			document.getElementById('page-info').textContent = totalPages > 0 ? `Halaman ${currentPage} dari ${totalPages}` : 'Halaman 0';
+
+			// Update button states
+			document.getElementById('prev-page').disabled = currentPage === 1;
+			document.getElementById('next-page').disabled = currentPage >= totalPages;
+		}
+
+		// Show/hide empty state
+		function showEmptyState() {
+			document.getElementById('table-empty').classList.remove('hidden');
+			const desktopTable = document.querySelector('.md\\:block.overflow-x-auto');
+			if (desktopTable) desktopTable.classList.add('hidden');
+			document.getElementById('table-body-mobile').classList.add('hidden');
+		}
+
+		function hideEmptyState() {
+			document.getElementById('table-empty').classList.add('hidden');
+			const desktopTable = document.querySelector('.md\\:block.overflow-x-auto');
+			if (desktopTable) desktopTable.classList.remove('hidden');
+			document.getElementById('table-body-mobile').classList.remove('hidden');
+		}
+
+		// Add new row from WebSocket update
+		function addTableRow(data) {
+			// Use timestamp from WebSocket data or create new one in WIB
+			const timestamp = data.timestamp || new Date().toLocaleString('id-ID', {
+				timeZone: 'Asia/Jakarta',
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit'
+			}).replace(/\//g, '/');
+
+			const newRow = {
+				air_temperature: data.air_temperature || 0,
+				air_humidity: data.air_humidity || 0,
+				rainfall: data.rainfall || 0,
+				soil_moisture: data.soil_moisture || 0,
+				soil_ph: data.soil_ph || 7,
+				wind_speed: data.wind_speed || 0,
+				wind_direction: data.wind_direction || 'N/A',
+				nitrogen: data.nitrogen || 0,
+				phosphorus: data.phosphorus || 0,
+				potassium: data.potassium || 0,
+				timestamp: timestamp
+			};
+
+			// Add to beginning of array
+			tableData.unshift(newRow);
+
+			// Keep only last 100 records
+			if (tableData.length > 100) {
+				tableData = tableData.slice(0, 100);
+			}
+
+			// Re-render if on first page
+			if (currentPage === 1) {
+				renderTable();
+			}
+			updatePaginationInfo();
+		}
+
+		// Pagination controls
+		document.getElementById('prev-page').addEventListener('click', function() {
+			if (currentPage > 1) {
+				currentPage--;
+				renderTable();
+				updatePaginationInfo();
+			}
+		});
+
+		document.getElementById('next-page').addEventListener('click', function() {
+			const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+			if (currentPage < totalPages) {
+				currentPage++;
+				renderTable();
+				updatePaginationInfo();
+			}
+		});
+
+		// Search functionality
+		let searchTimeout;
+		document.getElementById('search-table').addEventListener('input', function(e) {
+			clearTimeout(searchTimeout);
+			searchTimeout = setTimeout(() => {
+				filterTable(e.target.value);
+			}, 300); // Debounce search
+		});
+
+		// Refresh button
+		document.getElementById('refresh-table').addEventListener('click', function() {
+			const btn = this;
+			const icon = btn.querySelector('.material-icons');
+
+			// Add spinning animation
+			icon.classList.add('animate-spin');
+
+			// Clear search
+			document.getElementById('search-table').value = '';
+			filteredData = [...tableData];
+			currentPage = 1;
+
+			// Simulate refresh (re-render current data)
+			setTimeout(() => {
+				renderTable();
+				updatePaginationInfo();
+				icon.classList.remove('animate-spin');
+			}, 500);
+		});
+
+		// Export to Excel button
+		document.getElementById('export-table').addEventListener('click', function() {
+			if (tableData.length === 0) {
+				alert('Tidak ada data untuk diekspor');
+				return;
+			}
+
+			// Prepare data for Excel
+			const headers = ['No', 'Suhu Udara (°C)', 'Kelembapan Udara (%)', 'Curah Hujan (mm)', 'Kelembapan Tanah (%)',
+			                 'pH Tanah', 'Kecepatan Angin (km/h)', 'Arah Angin', 'Nitrogen (mg/kg)', 'Fosfor (mg/kg)',
+			                 'Kalium (mg/kg)', 'Waktu'];
+
+			// Create worksheet data
+			const wsData = [headers];
+
+			tableData.forEach((row, index) => {
+				const rowData = [
+					index + 1,
+					parseFloat(formatValue(row.air_temperature, 1)),
+					parseFloat(formatValue(row.air_humidity, 0)),
+					parseFloat(formatValue(row.rainfall, 2)),
+					parseFloat(formatValue(row.soil_moisture, 0)),
+					parseFloat(formatValue(row.soil_ph, 1)),
+					parseFloat(formatValue(row.wind_speed, 1)),
+					row.wind_direction,
+					parseFloat(formatValue(row.nitrogen, 0)),
+					parseFloat(formatValue(row.phosphorus, 0)),
+					parseFloat(formatValue(row.potassium, 0)),
+					row.timestamp
+				];
+				wsData.push(rowData);
+			});
+
+			// Create workbook and worksheet
+			const wb = XLSX.utils.book_new();
+			const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+			// Set column widths for better readability
+			ws['!cols'] = [
+				{ wch: 5 },   // No
+				{ wch: 15 },  // Suhu Udara
+				{ wch: 18 },  // Kelembapan Udara
+				{ wch: 16 },  // Curah Hujan
+				{ wch: 18 },  // Kelembapan Tanah
+				{ wch: 10 },  // pH Tanah
+				{ wch: 20 },  // Kecepatan Angin
+				{ wch: 12 },  // Arah Angin
+				{ wch: 16 },  // Nitrogen
+				{ wch: 14 },  // Fosfor
+				{ wch: 14 },  // Kalium
+				{ wch: 20 }   // Waktu
+			];
+
+			// Add worksheet to workbook
+			XLSX.utils.book_append_sheet(wb, ws, 'Data Sensor');
+
+			// Generate filename with timestamp
+			const now = new Date();
+			const filename = `sensor_data_${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}.xlsx`;
+
+			// Download the file
+			XLSX.writeFile(wb, filename);
+		});
+
+		// Initialize table
+		initializeTable();
 
 		// --- Logika WebSocket ---
 		const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -216,6 +1209,26 @@
 				statusIcon.textContent = "signal_cellular_off";
 			}
 		};
+
+		// Initialize charts with current data if available
+		{% if device and reading %}
+		const initialData = {
+			air_temperature: {{ reading.air_temperature|default:0 }},
+			air_humidity: {{ reading.air_humidity|default:0 }},
+			soil_moisture: {{ reading.soil_moisture|default:0 }},
+			soil_ph: {{ reading.soil_ph|default:7 }},
+			wind_speed: {{ reading.wind_speed|default:0 }},
+			rainfall: {{ reading.rainfall|default:0 }},
+			nitrogen: {{ reading.nitrogen|default:0 }},
+			phosphorus: {{ reading.phosphorus|default:0 }},
+			potassium: {{ reading.potassium|default:0 }}
+		};
+		updateCharts(initialData);
+		{% endif %}
 	});
 </script>
+
+<!-- SheetJS library for Excel export -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
 {% endblock %}
