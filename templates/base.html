@@ -60,6 +60,12 @@
 						</a>
 					</li>
 					<li>
+						<a href="{% url 'soysmart-ai' %}" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-green-700 transition-colors duration-200" data-path="soysmart-ai">
+							<span class="material-icons">psychology</span>
+							<span class="sidebar-text ml-3 whitespace-nowrap">SoySmart AI</span>
+						</a>
+					</li>
+					<li>
 						<a href="{% url 'water-pump' %}" class="sidebar-link flex items-center p-3 rounded-lg hover:bg-green-700 transition-colors duration-200" data-path="water-pump">
 							<span class="material-icons">water_drop</span>
 							<span class="sidebar-text ml-3 whitespace-nowrap">Pompa Air</span>
@@ -74,18 +80,22 @@
 		</aside>
 
 		<div class="fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 md:hidden">
-			<div class="grid h-full max-w-lg grid-cols-3 mx-auto font-medium">
-				<a href="{% url 'dashboard' %}" class="bottom-nav-link inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 group" data-path="dashboard">
+			<div class="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+				<a href="{% url 'dashboard' %}" class="bottom-nav-link inline-flex flex-col items-center justify-center px-3 hover:bg-gray-50 group min-w-0" data-path="dashboard">
 					<span class="material-icons text-gray-500 group-hover:text-green-700">dashboard</span>
-					<span class="text-sm text-gray-500 group-hover:text-green-700">Dashboard</span>
+					<span class="text-xs text-gray-500 group-hover:text-green-700 whitespace-nowrap truncate leading-tight">Dashboard</span>
 				</a>
-				<a href="{% url 'water-pump' %}" class="bottom-nav-link inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 group" data-path="water-pump">
+				<a href="{% url 'soysmart-ai' %}" class="bottom-nav-link inline-flex flex-col items-center justify-center px-3 hover:bg-gray-50 group min-w-0" data-path="soysmart-ai">
+					<span class="material-icons text-gray-500 group-hover:text-green-700">psychology</span>
+					<span class="text-xs text-gray-500 group-hover:text-green-700 whitespace-nowrap truncate leading-tight">SoySmart AI</span>
+				</a>
+				<a href="{% url 'water-pump' %}" class="bottom-nav-link inline-flex flex-col items-center justify-center px-3 hover:bg-gray-50 group min-w-0" data-path="water-pump">
 					<span class="material-icons text-gray-500 group-hover:text-green-700">water_drop</span>
-					<span class="text-sm text-gray-500 group-hover:text-green-700">Pompa Air</span>
+					<span class="text-xs text-gray-500 group-hover:text-green-700 whitespace-nowrap truncate leading-tight">Pompa Air</span>
 				</a>
-				<a href="{% url 'device' %}" class="bottom-nav-link inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 group" data-path="device">
+				<a href="{% url 'device' %}" class="bottom-nav-link inline-flex flex-col items-center justify-center px-3 hover:bg-gray-50 group min-w-0" data-path="device">
 					<span class="material-icons text-gray-500 group-hover:text-green-700">developer_board</span>
-					<span class="text-sm text-gray-500 group-hover:text-green-700">Device</span>
+					<span class="text-xs text-gray-500 group-hover:text-green-700 whitespace-nowrap truncate leading-tight">Device</span>
 				</a>
 			</div>
 		</div>

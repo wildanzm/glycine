@@ -1,0 +1,839 @@
+{% extends "base.html" %} {% load static %} {% block title %}SoySmart AI - Deteksi Penyakit Kedelai{% endblock %} {% block extra_css %}
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+<style>
+	.upload-area {
+		border: 2px dashed #cbd5e0;
+		transition: all 0.3s ease;
+	}
+	.upload-area.dragover {
+		border-color: #2d8a5b;
+		background-color: #f0fdf4;
+	}
+	.preview-image {
+		max-height: 400px;
+		object-fit: contain;
+	}
+	.result-card {
+		animation: slideUp 0.5s ease-out;
+	}
+	@keyframes slideUp {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Upload animation */
+	.upload-animation {
+		animation: fadeInScale 0.4s ease-out;
+	}
+
+	@keyframes fadeInScale {
+		from {
+			opacity: 0;
+			transform: scale(0.9);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	/* Progress bar animation */
+	.progress-bar {
+		height: 4px;
+		background: linear-gradient(90deg, #2d8a5b 0%, #34d399 50%, #2d8a5b 100%);
+		background-size: 200% 100%;
+		animation: progressShimmer 1.5s ease-in-out infinite;
+	}
+
+	@keyframes progressShimmer {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
+	}
+
+	/* Analyzing pulse animation */
+	.analyzing-pulse {
+		animation: pulse 1.5s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.8;
+			transform: scale(1.05);
+		}
+	}
+
+	/* Success checkmark animation */
+	.success-checkmark {
+		animation: checkmarkPop 0.5s ease-out;
+	}
+
+	@keyframes checkmarkPop {
+		0% {
+			transform: scale(0) rotate(-45deg);
+			opacity: 0;
+		}
+		50% {
+			transform: scale(1.2) rotate(-45deg);
+		}
+		100% {
+			transform: scale(1) rotate(0deg);
+			opacity: 1;
+		}
+	}
+
+	/* Success badge pulse */
+	.success-badge {
+		animation: successPulse 0.6s ease-out;
+	}
+
+	@keyframes successPulse {
+		0% {
+			transform: scale(0.8);
+			opacity: 0;
+		}
+		50% {
+			transform: scale(1.1);
+		}
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
+
+	/* Camera controls styling */
+	#camera-video {
+		max-height: 500px;
+		object-fit: cover;
+	}
+
+	/* Camera control buttons with backdrop blur */
+	#camera-container button {
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+	}
+
+	/* Mobile optimizations */
+	@media (max-width: 640px) {
+		#camera-video {
+			max-height: 400px;
+		}
+	}
+
+	/* Smooth transitions for buttons */
+	button[type="button"] {
+		-webkit-tap-highlight-color: transparent;
+	}
+</style>
+{% endblock %} {% block content %}
+<div class="space-y-6">
+	<!-- Header -->
+	<div class="bg-gradient-to-r from-green-700 to-green-600 text-white p-6 rounded-2xl shadow-lg">
+		<div class="flex items-center gap-3">
+			<span class="material-icons text-5xl">psychology</span>
+			<div>
+				<h1 class="text-3xl font-bold">SoySmart AI</h1>
+				<p class="text-green-100 mt-1">Deteksi Penyakit Daun Kedelai dengan AI</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Info Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+		<div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-blue-500">
+			<div class="flex items-center gap-3">
+				<span class="material-icons text-3xl text-blue-500">add_a_photo</span>
+				<div>
+					<p class="text-sm text-gray-500">Langkah 1</p>
+					<p class="font-semibold text-gray-800">Upload atau Foto</p>
+				</div>
+			</div>
+		</div>
+		<div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-purple-500">
+			<div class="flex items-center gap-3">
+				<span class="material-icons text-3xl text-purple-500">model_training</span>
+				<div>
+					<p class="text-sm text-gray-500">Langkah 2</p>
+					<p class="font-semibold text-gray-800">AI Menganalisis</p>
+				</div>
+			</div>
+		</div>
+		<div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-green-500">
+			<div class="flex items-center gap-3">
+				<span class="material-icons text-3xl text-green-500">verified</span>
+				<div>
+					<p class="text-sm text-gray-500">Langkah 3</p>
+					<p class="font-semibold text-gray-800">Hasil & Rekomendasi</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+		<!-- Upload Section -->
+		<div class="bg-white p-6 rounded-2xl shadow-md">
+			<h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+				<span class="material-icons text-green-700">image</span>
+				Analisis Daun Kedelai
+			</h2>
+
+			<form id="upload-form" enctype="multipart/form-data">
+				{% csrf_token %}
+
+				<!-- Upload Method Selection -->
+				<div class="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
+					<button
+						type="button"
+						id="upload-method-btn"
+						class="flex-1 bg-green-700 text-white py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base">
+						<span class="material-icons text-xl sm:text-2xl">cloud_upload</span>
+						<span>Upload File</span>
+					</button>
+					<button
+						type="button"
+						id="camera-method-btn"
+						class="flex-1 bg-gray-200 text-gray-700 py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-gray-300 text-sm sm:text-base">
+						<span class="material-icons text-xl sm:text-2xl">photo_camera</span>
+						<span>Gunakan Kamera</span>
+					</button>
+				</div>
+
+				<!-- Upload Area -->
+				<div id="upload-area" class="upload-area rounded-xl p-8 text-center cursor-pointer">
+					<input type="file" id="image-input" name="image" accept="image/*" class="hidden" />
+					<div id="upload-placeholder">
+						<span class="material-icons text-6xl text-gray-400 mb-4">cloud_upload</span>
+						<p class="text-gray-600 font-medium mb-2">Klik atau drag & drop gambar di sini</p>
+						<p class="text-sm text-gray-400">Format: JPG, PNG (Max 10MB)</p>
+					</div>
+					<div id="image-preview" class="hidden">
+						<img id="preview-img" class="preview-image mx-auto rounded-lg shadow-lg mb-4" alt="Preview" />
+						<p id="file-name" class="text-sm text-gray-600 mb-2"></p>
+						<button type="button" id="change-image" class="text-green-600 hover:text-green-700 text-sm font-medium">
+							<span class="material-icons text-sm align-middle">refresh</span>
+							Ganti Gambar
+						</button>
+					</div>
+				</div>
+
+				<!-- Camera Area (Hidden by default) -->
+				<div id="camera-area" class="rounded-xl overflow-hidden hidden">
+					<div id="camera-container" class="relative bg-black">
+						<video id="camera-video" class="w-full rounded-lg" autoplay playsinline></video>
+						<div class="absolute bottom-2 sm:bottom-3 left-0 right-0 flex justify-center gap-2 sm:gap-3 px-2">
+							<button
+								type="button"
+								id="capture-btn"
+								class="bg-green-600 hover:bg-green-700 text-white py-2 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base shadow-lg">
+								<span class="material-icons text-lg sm:text-xl">photo_camera</span>
+								<span>Ambil Foto</span>
+							</button>
+							<button
+								type="button"
+								id="switch-camera-btn"
+								class="bg-gray-700 hover:bg-gray-800 text-white py-2 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base shadow-lg">
+								<span class="material-icons text-lg sm:text-xl">flip_camera_ios</span>
+								<span class="hidden sm:inline">Ganti</span>
+							</button>
+						</div>
+					</div>
+					<canvas id="camera-canvas" class="hidden"></canvas>
+					<div id="camera-preview" class="hidden mt-4">
+						<img id="captured-img" class="preview-image mx-auto rounded-lg shadow-lg mb-4" alt="Captured" />
+						<div class="flex gap-2 justify-center">
+							<button
+								type="button"
+								id="retake-btn"
+								class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-3 sm:px-4 rounded-lg font-medium transition-colors duration-200 flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base">
+								<span class="material-icons text-lg sm:text-xl">refresh</span>
+								<span>Foto Ulang</span>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<button
+					type="submit"
+					id="analyze-btn"
+					disabled
+					class="w-full mt-4 bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed active:scale-95">
+					<span class="material-icons">auto_awesome</span>
+					<span id="btn-text">Analisis Gambar</span>
+				</button>
+			</form>
+
+			<!-- Loading State -->
+			<div id="loading-state" class="hidden mt-6 text-center">
+				<div class="progress-bar w-full mb-4 rounded-full overflow-hidden"></div>
+				<p class="text-gray-600 font-medium analyzing-pulse">AI sedang menganalisis gambar...</p>
+				<p class="text-sm text-gray-400 mt-2">Mohon tunggu beberapa saat</p>
+			</div>
+
+			<!-- Success Message -->
+			<div id="success-message" class="hidden mt-6 text-center">
+				<div class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-3 rounded-xl success-badge">
+					<span class="material-icons text-green-600 success-checkmark">check_circle</span>
+					<span class="font-medium">Analisis Selesai!</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Result Section -->
+		<div id="result-section" class="bg-white p-6 rounded-2xl shadow-md hidden">
+			<h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+				<span class="material-icons text-green-700">assignment</span>
+				Hasil Deteksi
+			</h2>
+
+			<div id="result-content" class="result-card space-y-4">
+				<!-- Disease Name -->
+				<div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+					<p class="text-sm text-gray-600 mb-1">Terdeteksi</p>
+					<h3 id="disease-name" class="text-2xl font-bold text-green-800"></h3>
+					<p id="scientific-name" class="text-sm text-gray-600 italic mt-1"></p>
+				</div>
+
+				<!-- Confidence Score -->
+				<div class="bg-gray-50 p-4 rounded-xl">
+					<div class="flex items-center justify-between mb-2">
+						<span class="text-sm font-medium text-gray-600">Tingkat Keyakinan</span>
+						<span id="confidence-value" class="text-lg font-bold text-green-700"></span>
+					</div>
+					<div class="w-full bg-gray-200 rounded-full h-2">
+						<div id="confidence-bar" class="bg-green-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+					</div>
+				</div>
+
+				<!-- Description -->
+				<div>
+					<h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+						<span class="material-icons text-sm text-blue-600">info</span>
+						Deskripsi
+					</h4>
+					<p id="description" class="text-gray-600 text-sm leading-relaxed bg-blue-50 p-3 rounded-lg"></p>
+				</div>
+
+				<!-- Recommendations -->
+				<div>
+					<h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+						<span class="material-icons text-sm text-amber-600">tips_and_updates</span>
+						Rekomendasi Penanganan
+					</h4>
+					<ul id="recommendations" class="space-y-2"></ul>
+				</div>
+
+				<!-- Action Button -->
+				<button onclick="resetAnalysis()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 mt-4">
+					<span class="material-icons">refresh</span>
+					Analisis Gambar Lain
+				</button>
+			</div>
+		</div>
+
+		<!-- Info/Help Section (when no result) -->
+		<div id="info-section" class="bg-gradient-to-br from-green-50 to-blue-50 p-6 rounded-2xl shadow-md">
+			<h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+				<span class="material-icons text-green-700">help_outline</span>
+				Tips Penggunaan
+			</h3>
+
+			<div class="space-y-3">
+				<div class="flex gap-3">
+					<span class="material-icons text-green-600 flex-shrink-0">check_circle</span>
+					<div>
+						<p class="font-medium text-gray-700">Kualitas Gambar</p>
+						<p class="text-sm text-gray-600">Pastikan gambar jelas dan fokus pada daun</p>
+					</div>
+				</div>
+				<div class="flex gap-3">
+					<span class="material-icons text-green-600 flex-shrink-0">check_circle</span>
+					<div>
+						<p class="font-medium text-gray-700">Pencahayaan</p>
+						<p class="text-sm text-gray-600">Gunakan cahaya yang cukup, hindari bayangan</p>
+					</div>
+				</div>
+				<div class="flex gap-3">
+					<span class="material-icons text-green-600 flex-shrink-0">check_circle</span>
+					<div>
+						<p class="font-medium text-gray-700">Sudut Pandang</p>
+						<p class="text-sm text-gray-600">Foto daun dari atas atau samping</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="mt-6 bg-white p-4 rounded-xl">
+				<h4 class="font-semibold text-gray-800 mb-2">Penyakit yang Dapat Dideteksi:</h4>
+				<div class="grid grid-cols-2 gap-2 text-xs">
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-green-600">fiber_manual_record</span>
+						<span class="text-gray-600">Hawar Daun Bakteri</span>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-green-600">fiber_manual_record</span>
+						<span class="text-gray-600">Bercak Cercospora</span>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-green-600">fiber_manual_record</span>
+						<span class="text-gray-600">Embun Bulu</span>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-green-600">fiber_manual_record</span>
+						<span class="text-gray-600">Bercak Mata Kodok</span>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-green-600">fiber_manual_record</span>
+						<span class="text-gray-600">Bercak Target</span>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-green-600">fiber_manual_record</span>
+						<span class="text-gray-600">Karat Kedelai</span>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-green-600">fiber_manual_record</span>
+						<span class="text-gray-600">Kekurangan Kalium</span>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="material-icons text-xs text-blue-600">fiber_manual_record</span>
+						<span class="text-gray-600">Daun Sehat</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+	const uploadArea = document.getElementById("upload-area");
+	const imageInput = document.getElementById("image-input");
+	const uploadPlaceholder = document.getElementById("upload-placeholder");
+	const imagePreview = document.getElementById("image-preview");
+	const previewImg = document.getElementById("preview-img");
+	const fileName = document.getElementById("file-name");
+	const changeImageBtn = document.getElementById("change-image");
+	const uploadForm = document.getElementById("upload-form");
+	const analyzeBtn = document.getElementById("analyze-btn");
+	const btnText = document.getElementById("btn-text");
+	const loadingState = document.getElementById("loading-state");
+	const successMessage = document.getElementById("success-message");
+	const resultSection = document.getElementById("result-section");
+	const infoSection = document.getElementById("info-section");
+
+	// Camera elements
+	const uploadMethodBtn = document.getElementById("upload-method-btn");
+	const cameraMethodBtn = document.getElementById("camera-method-btn");
+	const cameraArea = document.getElementById("camera-area");
+	const cameraVideo = document.getElementById("camera-video");
+	const cameraCanvas = document.getElementById("camera-canvas");
+	const cameraPreview = document.getElementById("camera-preview");
+	const capturedImg = document.getElementById("captured-img");
+	const captureBtn = document.getElementById("capture-btn");
+	const retakeBtn = document.getElementById("retake-btn");
+	const switchCameraBtn = document.getElementById("switch-camera-btn");
+
+	let stream = null;
+	let currentFacingMode = "environment"; // 'user' for front, 'environment' for back
+	let capturedBlob = null;
+
+	// Method switching
+	uploadMethodBtn.addEventListener("click", () => {
+		switchToUploadMode();
+	});
+
+	cameraMethodBtn.addEventListener("click", () => {
+		switchToCameraMode();
+	});
+
+	function switchToUploadMode() {
+		uploadMethodBtn.classList.remove("bg-gray-200", "text-gray-700");
+		uploadMethodBtn.classList.add("bg-green-700", "text-white");
+		cameraMethodBtn.classList.remove("bg-green-700", "text-white");
+		cameraMethodBtn.classList.add("bg-gray-200", "text-gray-700");
+
+		uploadArea.classList.remove("hidden");
+		cameraArea.classList.add("hidden");
+		stopCamera();
+
+		// Enable analyze button only if a file has been selected
+		analyzeBtn.disabled = !imageInput.files.length;
+	}
+
+	function switchToCameraMode() {
+		cameraMethodBtn.classList.remove("bg-gray-200", "text-gray-700");
+		cameraMethodBtn.classList.add("bg-green-700", "text-white");
+		uploadMethodBtn.classList.remove("bg-green-700", "text-white");
+		uploadMethodBtn.classList.add("bg-gray-200", "text-gray-700");
+
+		uploadArea.classList.add("hidden");
+		cameraArea.classList.remove("hidden");
+		startCamera();
+		// Disable analyze button until photo is captured
+		analyzeBtn.disabled = true;
+	}
+
+	// Camera functions
+	async function startCamera() {
+		try {
+			if (stream) {
+				stopCamera();
+			}
+
+			const constraints = {
+				video: {
+					facingMode: currentFacingMode,
+					width: { ideal: 1280 },
+					height: { ideal: 720 },
+				},
+			};
+
+			stream = await navigator.mediaDevices.getUserMedia(constraints);
+			cameraVideo.srcObject = stream;
+			document.getElementById("camera-container").classList.remove("hidden");
+			cameraPreview.classList.add("hidden");
+		} catch (error) {
+			Swal.fire({
+				icon: "error",
+				title: "Tidak Dapat Mengakses Kamera",
+				text: "Pastikan izin kamera sudah diberikan dan perangkat Anda memiliki kamera.",
+				confirmButtonColor: "#2d8a5b",
+				confirmButtonText: "OK",
+			});
+			switchToUploadMode();
+		}
+	}
+
+	function stopCamera() {
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+			stream = null;
+		}
+	}
+
+	// Switch between front and back camera
+	switchCameraBtn.addEventListener("click", () => {
+		currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+		startCamera();
+	});
+
+	// Capture photo
+	captureBtn.addEventListener("click", () => {
+		const video = cameraVideo;
+		const canvas = cameraCanvas;
+		const context = canvas.getContext("2d");
+
+		// Set canvas size to video size
+		canvas.width = video.videoWidth;
+		canvas.height = video.videoHeight;
+
+		// Draw video frame to canvas
+		context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+		// Convert to blob
+		canvas.toBlob(
+			(blob) => {
+				capturedBlob = blob;
+				capturedImg.src = URL.createObjectURL(blob);
+
+				// Hide video, show preview with animation
+				document.getElementById("camera-container").classList.add("hidden");
+				cameraPreview.classList.remove("hidden");
+				cameraPreview.classList.add("upload-animation");
+
+				// Remove animation class after it completes
+				setTimeout(() => {
+					cameraPreview.classList.remove("upload-animation");
+				}, 400);
+
+				// Enable analyze button now that we have a captured photo
+				analyzeBtn.disabled = false;
+
+				stopCamera();
+			},
+			"image/jpeg",
+			0.95
+		);
+	});
+
+	// Retake photo
+	retakeBtn.addEventListener("click", () => {
+		capturedBlob = null;
+		// Disable analyze button since we're retaking
+		analyzeBtn.disabled = true;
+
+		// Hide preview, show camera
+		cameraPreview.classList.add("hidden");
+		document.getElementById("camera-container").classList.remove("hidden");
+
+		startCamera();
+	});
+
+	// Click to upload (upload mode)
+	uploadArea.addEventListener("click", () => {
+		imageInput.click();
+	});
+
+	// Drag and drop
+	uploadArea.addEventListener("dragover", (e) => {
+		e.preventDefault();
+		uploadArea.classList.add("dragover");
+	});
+
+	uploadArea.addEventListener("dragleave", () => {
+		uploadArea.classList.remove("dragover");
+	});
+
+	uploadArea.addEventListener("drop", (e) => {
+		e.preventDefault();
+		uploadArea.classList.remove("dragover");
+		const file = e.dataTransfer.files[0];
+		if (file && file.type.startsWith("image/")) {
+			imageInput.files = e.dataTransfer.files;
+			handleImageSelect(file);
+		}
+	});
+
+	// Handle image selection
+	imageInput.addEventListener("change", (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			handleImageSelect(file);
+		}
+	});
+
+	function handleImageSelect(file) {
+		// Check file size (10MB max)
+		if (file.size > 10 * 1024 * 1024) {
+			Swal.fire({
+				icon: "warning",
+				title: "Ukuran File Terlalu Besar",
+				text: "Ukuran file maksimal adalah 10MB. Silakan pilih gambar yang lebih kecil.",
+				confirmButtonColor: "#2d8a5b",
+				confirmButtonText: "OK",
+			});
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			previewImg.src = e.target.result;
+			fileName.textContent = file.name;
+
+			// Add smooth animation
+			uploadPlaceholder.classList.add("hidden");
+			imagePreview.classList.remove("hidden");
+			imagePreview.classList.add("upload-animation");
+
+			// Remove animation class after it completes
+			setTimeout(() => {
+				imagePreview.classList.remove("upload-animation");
+			}, 400);
+
+			analyzeBtn.disabled = false;
+		};
+		reader.readAsDataURL(file);
+	}
+
+	// Change image button
+	changeImageBtn.addEventListener("click", (e) => {
+		e.stopPropagation();
+		imageInput.click();
+	});
+
+	// Form submission
+	uploadForm.addEventListener("submit", async (e) => {
+		e.preventDefault();
+
+		const formData = new FormData();
+
+		// Check if using camera or upload
+		if (capturedBlob) {
+			// Camera mode
+			formData.append("image", capturedBlob, "camera-capture.jpg");
+		} else if (imageInput.files[0]) {
+			// Upload mode
+			const file = imageInput.files[0];
+			formData.append("image", file);
+		} else {
+			// No image selected
+			Swal.fire({
+				icon: "warning",
+				title: "Gambar Belum Dipilih",
+				text: "Silakan pilih gambar atau ambil foto terlebih dahulu untuk melakukan analisis.",
+				confirmButtonColor: "#2d8a5b",
+				confirmButtonText: "OK",
+			});
+			return;
+		}
+
+		// Add CSRF token
+		const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+		formData.append("csrfmiddlewaretoken", csrfToken);
+
+		// Show loading state with smooth transition
+		analyzeBtn.disabled = true;
+		analyzeBtn.classList.add("opacity-50");
+
+		// Add smooth fade-in for loading state
+		loadingState.style.opacity = "0";
+		loadingState.classList.remove("hidden");
+		setTimeout(() => {
+			loadingState.style.transition = "opacity 0.3s ease-in";
+			loadingState.style.opacity = "1";
+		}, 10);
+
+		resultSection.classList.add("hidden");
+
+		try {
+			const response = await fetch('{% url "soysmart-ai" %}', {
+				method: "POST",
+				body: formData,
+				headers: {
+					"X-Requested-With": "XMLHttpRequest",
+				},
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				// Smooth fade-out for loading state
+				loadingState.style.transition = "opacity 0.3s ease-out";
+				loadingState.style.opacity = "0";
+
+				setTimeout(() => {
+					loadingState.classList.add("hidden");
+
+					// Show success message briefly
+					successMessage.classList.remove("hidden");
+					successMessage.style.opacity = "1";
+
+					// Hide success message and show result
+					setTimeout(() => {
+						successMessage.style.transition = "opacity 0.3s ease-out";
+						successMessage.style.opacity = "0";
+
+						setTimeout(() => {
+							successMessage.classList.add("hidden");
+							displayResult(data);
+						}, 300);
+					}, 1000);
+				}, 300);
+			} else {
+				throw new Error(data.error || "Terjadi kesalahan saat menganalisis gambar");
+			}
+		} catch (error) {
+			Swal.fire({
+				icon: "error",
+				title: "Gagal Menganalisis Gambar",
+				text: error.message || "Terjadi kesalahan saat memproses gambar. Silakan coba lagi.",
+				confirmButtonColor: "#2d8a5b",
+				confirmButtonText: "OK",
+			});
+			analyzeBtn.disabled = false;
+			analyzeBtn.classList.remove("opacity-50"); // Hide loading state on error
+			loadingState.style.transition = "opacity 0.3s ease-out";
+			loadingState.style.opacity = "0";
+			setTimeout(() => {
+				loadingState.classList.add("hidden");
+			}, 300);
+		}
+	});
+
+	function displayResult(data) {
+		// Update disease info
+		document.getElementById("disease-name").textContent = data.penyakit;
+		document.getElementById("scientific-name").textContent = data.nama_ilmiah;
+		document.getElementById("description").textContent = data.deskripsi;
+
+		// Update confidence score with animation
+		const confidence = (data.confidence * 100).toFixed(1);
+		document.getElementById("confidence-value").textContent = confidence + "%";
+		const confidenceBar = document.getElementById("confidence-bar");
+
+		// Animate confidence bar
+		setTimeout(() => {
+			confidenceBar.style.width = confidence + "%";
+		}, 100);
+
+		// Update recommendations
+		const rekomList = document.getElementById("recommendations");
+		rekomList.innerHTML = "";
+		data.rekomendasi.forEach((rekom, index) => {
+			const li = document.createElement("li");
+			li.className = "flex gap-2 bg-amber-50 p-3 rounded-lg";
+			li.style.opacity = "0";
+			li.style.transform = "translateY(10px)";
+			li.innerHTML = `
+				<span class="material-icons text-sm text-amber-600 flex-shrink-0 mt-0.5">check_circle</span>
+				<span class="text-sm text-gray-700">${rekom}</span>
+			`;
+			rekomList.appendChild(li);
+
+			// Stagger animation for each recommendation
+			setTimeout(() => {
+				li.style.transition = "opacity 0.3s ease-out, transform 0.3s ease-out";
+				li.style.opacity = "1";
+				li.style.transform = "translateY(0)";
+			}, 100 * (index + 1));
+		});
+
+		// Show result section with smooth animation
+		infoSection.classList.add("hidden");
+		resultSection.style.opacity = "0";
+		resultSection.classList.remove("hidden");
+		setTimeout(() => {
+			resultSection.style.transition = "opacity 0.4s ease-in";
+			resultSection.style.opacity = "1";
+		}, 50);
+
+		// Re-enable analyze button
+		analyzeBtn.disabled = false;
+		analyzeBtn.classList.remove("opacity-50");
+	}
+
+	function resetAnalysis() {
+		// Reset form and clear uploaded file
+		uploadForm.reset();
+		uploadPlaceholder.classList.remove("hidden");
+		imagePreview.classList.add("hidden");
+		resultSection.classList.add("hidden");
+		infoSection.classList.remove("hidden");
+
+		// Clear captured photo from camera
+		capturedBlob = null;
+
+		// Reset camera preview if it was shown
+		cameraPreview.classList.add("hidden");
+
+		// Disable analyze button
+		analyzeBtn.disabled = true;
+
+		// Stop camera if active
+		stopCamera();
+
+		// Reset to upload mode
+		switchToUploadMode();
+	}
+
+	// Stop camera when leaving page
+	window.addEventListener("beforeunload", () => {
+		stopCamera();
+	});
+</script>
+{% endblock %}

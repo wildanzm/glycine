@@ -1,4 +1,6 @@
 {% extends "base.html" %} {% block title %}SoySmart 360 | Dashboard{% endblock %} {% block extra_css %}
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 <style>
 	.connection-status {
 		padding: 8px 16px;
@@ -625,6 +627,10 @@
 		<div>
 			<h2 id="device-name" class="text-3xl font-bold text-gray-800">{{ device.name }}</h2>
 			<p class="text-gray-500 mt-1">Mac Address: <span class="font-mono text-sm">{{ device.device_uuid }}</span></p>
+			<p class="text-gray-400 mt-1 text-sm flex items-center gap-1">
+				<span class="material-icons text-sm">today</span>
+				<span id="current-date">{{ current_date }}</span>
+			</p>
 		</div>
 		<div class="flex items-center gap-6">
 			<div class="text-right">
@@ -787,15 +793,7 @@
 					<h3 class="text-xl font-semibold text-gray-800">Riwayat Data Sensor</h3>
 					<p class="text-sm text-gray-500 mt-1">Data pembacaan sensor terbaru</p>
 				</div>
-				<div class="flex gap-2 w-full sm:w-auto">
-					<div class="relative flex-1 sm:flex-initial">
-						<input
-							type="text"
-							id="search-table"
-							placeholder="Cari data..."
-							class="w-full sm:w-48 px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-						<span class="material-icons absolute right-3 top-2 text-gray-400 text-xl pointer-events-none">search</span>
-					</div>
+				<div class="flex gap-2">
 					<button id="refresh-table" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm">
 						<span class="material-icons text-lg">refresh</span>
 						<span class="hidden sm:inline">Refresh</span>
@@ -876,6 +874,9 @@
 	{% endif %}
 </div>
 {% endblock %} {% block extra_js %}
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 	document.addEventListener("DOMContentLoaded", function () {
 		// --- Initialize Charts ---
@@ -920,7 +921,15 @@
 
 		// Populate arrays with historical data
 		historicalData.forEach(reading => {
-			timeLabels.push(reading.timestamp);
+			// Extract time in HH:MM:SS format from timestamp
+			let timeLabel = reading.timestamp;
+			const timestampParts = reading.timestamp.split(' ');
+			if (timestampParts.length > 1) {
+				// Format: "DD/MM/YYYY HH:MM:SS" - extract time part
+				timeLabel = timestampParts[1];
+			}
+
+			timeLabels.push(timeLabel);
 			tempData.push(reading.air_temperature);
 			airHumidityData.push(reading.air_humidity);
 			soilMoistureData.push(reading.soil_moisture);
@@ -1282,11 +1291,26 @@
 		// Function to update all charts with new data
 		function updateCharts(data) {
 			// Use timestamp from data if available, otherwise create new one in WIB
-			const currentTime = data.timestamp || new Date().toLocaleTimeString('id-ID', {
-				timeZone: 'Asia/Jakarta',
-				hour: '2-digit',
-				minute: '2-digit'
-			});
+			let currentTime;
+			if (data.timestamp) {
+				// If timestamp is provided, extract HH:MM:SS format
+				const timestampParts = data.timestamp.split(' ');
+				if (timestampParts.length > 1) {
+					// Format: "DD/MM/YYYY HH:MM:SS" - extract time part
+					currentTime = timestampParts[1];
+				} else {
+					// Already in time format
+					currentTime = data.timestamp;
+				}
+			} else {
+				// Create new timestamp with HH:MM:SS format
+				currentTime = new Date().toLocaleTimeString('id-ID', {
+					timeZone: 'Asia/Jakarta',
+					hour: '2-digit',
+					minute: '2-digit',
+					second: '2-digit'
+				});
+			}
 
 			// Add new time label
 			timeLabels.push(currentTime);
@@ -1431,8 +1455,6 @@
 		let currentPage = 1;
 		let itemsPerPage = 20;
 		let tableData = [];
-		let filteredData = [];
-		let searchQuery = '';
 
 		// Initialize table with historical data
 		function initializeTable() {
@@ -1443,36 +1465,6 @@
 				wind_direction: reading.wind_direction || 'N/A'
 			})).reverse(); // Most recent first
 
-			filteredData = [...tableData];
-			renderTable();
-			updatePaginationInfo();
-		}
-
-		// Filter table data based on search query
-		function filterTable(query) {
-			searchQuery = query.toLowerCase();
-
-			if (!searchQuery) {
-				filteredData = [...tableData];
-			} else {
-				filteredData = tableData.filter(row => {
-					return (
-						row.timestamp.toLowerCase().includes(searchQuery) ||
-						row.air_temperature.toString().includes(searchQuery) ||
-						row.air_humidity.toString().includes(searchQuery) ||
-						row.rainfall.toString().includes(searchQuery) ||
-						row.soil_moisture.toString().includes(searchQuery) ||
-						row.soil_ph.toString().includes(searchQuery) ||
-						row.wind_speed.toString().includes(searchQuery) ||
-						row.wind_direction.toLowerCase().includes(searchQuery) ||
-						row.nitrogen.toString().includes(searchQuery) ||
-						row.phosphorus.toString().includes(searchQuery) ||
-						row.potassium.toString().includes(searchQuery)
-					);
-				});
-			}
-
-			currentPage = 1; // Reset to first page
 			renderTable();
 			updatePaginationInfo();
 		}
@@ -1481,7 +1473,7 @@
 		function renderTable() {
 			const start = (currentPage - 1) * itemsPerPage;
 			const end = start + itemsPerPage;
-			const pageData = filteredData.slice(start, end);
+			const pageData = tableData.slice(start, end);
 
 			if (pageData.length === 0) {
 				showEmptyState();
@@ -1597,15 +1589,9 @@
 			`).join('');
 		}
 
-		// Format value helper
-		function formatValue(value, decimals) {
-			if (value === null || value === undefined) return '--';
-			return parseFloat(value).toFixed(decimals);
-		}
-
 		// Update pagination info
 		function updatePaginationInfo() {
-			const totalRecords = filteredData.length;
+			const totalRecords = tableData.length;
 			const totalPages = Math.ceil(totalRecords / itemsPerPage);
 			const start = Math.min((currentPage - 1) * itemsPerPage + 1, totalRecords);
 			const end = Math.min(currentPage * itemsPerPage, totalRecords);
@@ -1618,6 +1604,12 @@
 			// Update button states
 			document.getElementById('prev-page').disabled = currentPage === 1;
 			document.getElementById('next-page').disabled = currentPage >= totalPages;
+		}
+
+		// Format value helper
+		function formatValue(value, decimals) {
+			if (value === null || value === undefined) return '--';
+			return parseFloat(value).toFixed(decimals);
 		}
 
 		// Show/hide empty state
@@ -1684,21 +1676,12 @@
 		});
 
 		document.getElementById('next-page').addEventListener('click', function() {
-			const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+			const totalPages = Math.ceil(tableData.length / itemsPerPage);
 			if (currentPage < totalPages) {
 				currentPage++;
 				renderTable();
 				updatePaginationInfo();
 			}
-		});
-
-		// Search functionality
-		let searchTimeout;
-		document.getElementById('search-table').addEventListener('input', function(e) {
-			clearTimeout(searchTimeout);
-			searchTimeout = setTimeout(() => {
-				filterTable(e.target.value);
-			}, 300); // Debounce search
 		});
 
 		// Refresh button
@@ -1709,9 +1692,7 @@
 			// Add spinning animation
 			icon.classList.add('animate-spin');
 
-			// Clear search
-			document.getElementById('search-table').value = '';
-			filteredData = [...tableData];
+			// Reset to first page
 			currentPage = 1;
 
 			// Simulate refresh (re-render current data)
@@ -1815,7 +1796,6 @@
 		};
 
 		dashboardSocket.onclose = function (e) {
-			console.error("Koneksi WebSocket Dashboard ditutup.");
 			const statusLabel = document.getElementById("device-status-label");
 			const statusIcon = document.getElementById("device-status-icon");
 			const statusContainer = document.getElementById("device-status-text");
@@ -1828,21 +1808,69 @@
 			}
 		};
 
-		// Initialize charts with current data if available
-		{% if device and reading %}
-		const initialData = {
-			air_temperature: {{ reading.air_temperature|default:0 }},
-			air_humidity: {{ reading.air_humidity|default:0 }},
-			soil_moisture: {{ reading.soil_moisture|default:0 }},
-			soil_ph: {{ reading.soil_ph|default:7 }},
-			wind_speed: {{ reading.wind_speed|default:0 }},
-			rainfall: {{ reading.rainfall|default:0 }},
-			nitrogen: {{ reading.nitrogen|default:0 }},
-			phosphorus: {{ reading.phosphorus|default:0 }},
-			potassium: {{ reading.potassium|default:0 }}
-		};
-		updateCharts(initialData);
-		{% endif %}
+		// Note: Charts are already initialized with historical data above
+		// No need to call updateCharts() here as it would create duplicate data points
+		// Real-time updates will be handled by WebSocket messages
+
+		// --- Auto-refresh on day change ---
+		// Store the current date when page loads
+		let currentDate = new Date().toDateString();
+		let dayChangeNotified = false;
+
+		// Check every minute if the day has changed
+		setInterval(function() {
+			const newDate = new Date().toDateString();
+			if (newDate !== currentDate && !dayChangeNotified) {
+				dayChangeNotified = true;
+				Swal.fire({
+					icon: 'info',
+					title: 'Hari Telah Berganti',
+					html: 'Dashboard akan dimuat ulang untuk menampilkan data hari ini.<br><small class="text-gray-500">Halaman akan refresh dalam 5 detik...</small>',
+					timer: 5000,
+					timerProgressBar: true,
+					showConfirmButton: true,
+					confirmButtonText: 'Refresh Sekarang',
+					confirmButtonColor: '#2d8a5b',
+					allowOutsideClick: false,
+					didOpen: () => {
+						const confirmButton = Swal.getConfirmButton();
+						confirmButton.addEventListener('click', () => {
+							location.reload();
+						});
+					}
+				}).then((result) => {
+					if (result.dismiss === Swal.DismissReason.timer) {
+						location.reload();
+					}
+				});
+			}
+		}, 60000); // Check every 60 seconds
+
+		// Also check at midnight (more precise)
+		function scheduleNextMidnightCheck() {
+			const now = new Date();
+			const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5); // 00:00:05 tomorrow
+			const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+
+			setTimeout(function() {
+				Swal.fire({
+					icon: 'success',
+					title: 'Selamat Datang di Hari Baru!',
+					html: 'Dashboard akan dimuat ulang untuk menampilkan data hari ini.<br><small class="text-gray-500">Halaman akan refresh dalam 5 detik...</small>',
+					timer: 5000,
+					timerProgressBar: true,
+					showConfirmButton: true,
+					confirmButtonText: 'Refresh Sekarang',
+					confirmButtonColor: '#2d8a5b',
+					allowOutsideClick: false
+				}).then(() => {
+					location.reload();
+				});
+			}, timeUntilMidnight);
+		}
+
+		// Schedule the midnight check
+		scheduleNextMidnightCheck();
 	});
 </script>
 

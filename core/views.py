@@ -2,24 +2,57 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Device, SensorReading
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from pathlib import Path
+from datetime import datetime, time
 import json
+import os
+import threading
+
+# Suppress TensorFlow logging
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+# Global cache for TFLite model (thread-safe)
+_interpreter_cache = None
+_rekomendasi_cache = None
+_model_lock = threading.Lock()
+_model_loaded = False
 
 
 def dashboard(request):
     """
-    Displays the main dashboard page.
-    Loads initial data for a single device only.
-    Further updates are handled by WebSocket.
+    Displays the main dashboard page with TODAY'S data only.
+    Data automatically resets when the day changes.
+    Further real-time updates are handled by WebSocket.
     """
     device = Device.objects.first()
     latest_reading = None
     historical_data = []
     
     if device:
-        latest_reading = SensorReading.objects.filter(device=device).order_by('-timestamp').first()
+        # Get current date in Asia/Jakarta timezone
+        jakarta_tz = timezone.get_current_timezone()
+        now = timezone.now()
+        today = timezone.localtime(now).date()
         
-        # Get last 20 readings for charts
-        readings = SensorReading.objects.filter(device=device).order_by('-timestamp')[:20]
+        # Define start and end of today in Jakarta timezone
+        start_of_day = timezone.make_aware(datetime.combine(today, time.min))
+        end_of_day = timezone.make_aware(datetime.combine(today, time.max))
+        
+        # Get latest reading from today only
+        latest_reading = SensorReading.objects.filter(
+            device=device,
+            timestamp__gte=start_of_day,
+            timestamp__lte=end_of_day
+        ).order_by('-timestamp').first()
+        
+        # Get all readings from today for charts (limit to last 100 for performance)
+        readings = SensorReading.objects.filter(
+            device=device,
+            timestamp__gte=start_of_day,
+            timestamp__lte=end_of_day
+        ).order_by('-timestamp')[:100]
         
         # Reverse to get chronological order
         readings = reversed(readings)
@@ -48,6 +81,7 @@ def dashboard(request):
         'reading': latest_reading,
         'historical_data_json': json.dumps(historical_data),
         'active_page': 'dashboard',
+        'current_date': timezone.localtime(timezone.now()).strftime('%d %B %Y'),
     }
     return render(request, 'dashboard.html', context)
 
@@ -158,3 +192,99 @@ def device(request):
         'active_page': 'device',
     }
     return render(request, 'device.html', context)
+
+
+def soysmart_ai(request):
+    """
+    SoySmart AI - Soybean disease detection using TensorFlow Lite
+    Supports 8 disease classes with confidence scoring
+    """
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            with _model_lock:
+                global _interpreter_cache, _rekomendasi_cache, _model_loaded
+                
+                # Lazy load model on first request
+                if _interpreter_cache is None and not _model_loaded:
+                    try:
+                        import tensorflow as tf
+                        from PIL import Image
+                        import io
+                        import numpy as np
+                        
+                        BASE_DIR = Path(__file__).resolve().parent.parent
+                        model_path = os.path.join(BASE_DIR, 'model', 'model_kedelai_v1.tflite')
+                        rekomendasi_path = os.path.join(BASE_DIR, 'model', 'rekomendasi.json')
+                        
+                        if not os.path.exists(model_path):
+                            return JsonResponse({'error': 'Model tidak ditemukan'}, status=500)
+                        
+                        # Initialize TFLite interpreter
+                        _interpreter_cache = tf.lite.Interpreter(model_path=model_path)
+                        _interpreter_cache.allocate_tensors()
+                        
+                        # Load disease information
+                        with open(rekomendasi_path, 'r', encoding='utf-8') as f:
+                            _rekomendasi_cache = json.load(f)
+                        
+                        _model_loaded = True
+                        
+                    except Exception as e:
+                        return JsonResponse({'error': f'Gagal memuat model: {str(e)}'}, status=500)
+                
+                if _interpreter_cache is None:
+                    return JsonResponse({'error': 'Model belum berhasil dimuat'}, status=500)
+                
+                # Import required libraries
+                from PIL import Image
+                import io
+                import numpy as np
+                
+                # Validate image upload
+                if 'image' not in request.FILES:
+                    return JsonResponse({'error': 'Tidak ada file gambar'}, status=400)
+                
+                img_file = request.FILES['image']
+                if not img_file.content_type.startswith('image/'):
+                    return JsonResponse({'error': 'File harus berupa gambar'}, status=400)
+                
+                # Preprocess image for model input (224x224 RGB)
+                img = Image.open(io.BytesIO(img_file.read()))
+                img = img.convert('RGB')
+                img = img.resize((224, 224), Image.BILINEAR)
+                img_array = np.array(img, dtype=np.float32) / 255.0
+                img_array = np.expand_dims(img_array, axis=0)
+                
+                # Perform inference
+                try:
+                    input_details = _interpreter_cache.get_input_details()
+                    output_details = _interpreter_cache.get_output_details()
+                    
+                    _interpreter_cache.set_tensor(input_details[0]['index'], img_array)
+                    _interpreter_cache.invoke()
+                    predictions = _interpreter_cache.get_tensor(output_details[0]['index'])
+                    
+                    # Extract prediction results
+                    labels = list(_rekomendasi_cache.keys())
+                    predicted_index = np.argmax(predictions[0])
+                    confidence = float(predictions[0][predicted_index])
+                    predicted_class = labels[predicted_index]
+                    
+                    # Return disease information with recommendations
+                    disease_info = _rekomendasi_cache[predicted_class]
+                    return JsonResponse({
+                        'penyakit': predicted_class,
+                        'nama_ilmiah': disease_info['nama_ilmiah'],
+                        'deskripsi': disease_info['deskripsi'],
+                        'rekomendasi': disease_info['rekomendasi'],
+                        'confidence': confidence
+                    })
+                    
+                except Exception as e:
+                    return JsonResponse({'error': f'Gagal melakukan prediksi: {str(e)}'}, status=500)
+            
+        except Exception as e:
+            return JsonResponse({'error': f'Terjadi kesalahan: {str(e)}'}, status=500)
+    
+    # GET request - render upload page
+    return render(request, 'soysmart-ai.html', {'active_page': 'soysmart-ai'})
