@@ -252,7 +252,7 @@ def soysmart_ai(request):
                 img = Image.open(io.BytesIO(img_file.read()))
                 img = img.convert('RGB')
                 img = img.resize((224, 224), Image.BILINEAR)
-                img_array = np.array(img, dtype=np.float32) / 255.0
+                img_array = np.array(img, dtype=np.float32)
                 img_array = np.expand_dims(img_array, axis=0)
                 
                 # Perform inference
